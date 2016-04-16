@@ -2,7 +2,7 @@ package xrel
 
 import (
 	"encoding/json"
-	"github.com/hashworks/xRELTerminalClient/src/xrel/types"
+	"github.com/hashworks/go-xREL-API/xrel/types"
 	"io/ioutil"
 	"net/http"
 )

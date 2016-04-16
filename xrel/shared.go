@@ -16,7 +16,7 @@ package xrel
 
 import (
 	"errors"
-	"github.com/hashworks/xRELTerminalClient/src/xrel/types"
+	"github.com/hashworks/go-xREL-API/xrel/types"
 	"github.com/mrjones/oauth"
 	"net/http"
 	"strconv"
