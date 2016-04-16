@@ -6,7 +6,7 @@ A golang package to authorize with and access the complete xrel.to API.
 
 Import this way:
 ```go
-import https://github.com/hashworks/go-xREL-API/xrel
+import github.com/hashworks/go-xREL-API/xrel
 ```
 
 If you use the OAuth authentication make sure to save the Config variable somewhere and set it again on your next run.
