@@ -26,10 +26,10 @@ func TestGetP2PReleaseInfo(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
-	if relByID.Id == "" {
+	if relByID.ID == "" {
 		t.Error("Didn't expect the id to be empty.")
 	}
-	if relByID.Id != relByDirname.Id {
+	if relByID.ID != relByDirname.ID {
 		t.Error("Expected to receive the same ids by id and by dirname but tjey are different.")
 	}
 	if relByID.Dirname == "" {
@@ -54,7 +54,7 @@ func TestGetP2PCategories(t *testing.T) {
 		} else {
 			exists := false
 			for i := range cats {
-				if cats[i].Id == catID {
+				if cats[i].ID == catID {
 					exists = true
 					break
 				}
@@ -95,7 +95,7 @@ func TestGetP2PReleases(t *testing.T) {
 		if len(releases.List) == 0 {
 			t.Error("Received unexpected release count of 0.")
 		} else {
-			if releases.List[0].Id == "" {
+			if releases.List[0].ID == "" {
 				t.Errorf("Didn't expect the first release not to have any id.")
 			}
 		}
@@ -119,7 +119,7 @@ func TestGetP2PReleases(t *testing.T) {
 		if len(releases.List) == 0 {
 			t.Error("Received unexpected release count of 0.")
 		} else {
-			if releases.List[0].Id == "" {
+			if releases.List[0].ID == "" {
 				t.Errorf("Didn't expect the first release not to have any id.")
 			}
 		}
@@ -142,7 +142,7 @@ func TestGetP2PReleases(t *testing.T) {
 		if len(releases.List) == 0 {
 			t.Error("Received unexpected release count of 0.")
 		} else {
-			if releases.List[0].Id == "" {
+			if releases.List[0].ID == "" {
 				t.Errorf("Didn't expect the first release not to have any id.")
 			}
 		}

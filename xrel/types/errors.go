@@ -5,7 +5,7 @@ const ERROR_TYPE_OAUTH = "oauth2"
 const ERROR_TYPE_API = "api"
 
 /*
-All methods may return this struct, which implements the normal `error` type.
+Error is a struct which implements the normal `error` type, all methods may return this struct.
 Additional to the `Error()` function this struct contains some variables.
 
 Errors with type `ERROR_TYPE_API` are xREL.to errors (https://www.xrel.to/wiki/6435/api-errors.html), for all other
@@ -26,16 +26,15 @@ type Error struct {
 	description string `json:"error_description"`
 }
 
-/**
-Returns the error description.
+/*
+Error returns the error description.
 */
 func (e *Error) Error() string {
 	return e.description
 }
 
-/**
-Creates a new error. If you don't specify a description
-it will be set by the error code.
+/*
+NewError creates a new error. If you don't specify a description it will be set by the error code.
 */
 func NewError(errorType, errorCode, errorExtra, errorDesc string) *Error {
 	err := &Error{}

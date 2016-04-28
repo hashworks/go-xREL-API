@@ -9,11 +9,11 @@ type Comments struct {
 }
 
 type Comment struct {
-	Id       string `json:"id"`
+	ID       string `json:"id"`
 	TimeUnix int64  `json:"time"`
 	Author   Author `json:"author"`
 	Text     string `json:"text"`
-	LinkHref string `json:"link_href"`
+	LinkURL  string `json:"link_href"`
 	Rating   Rating `json:"rating"`
 	Votes    Votes  `json:"votes"`
 	Edits    Edits  `json:"edits"`
@@ -24,7 +24,7 @@ func (c *Comment) GetTime() time.Time {
 }
 
 type Author struct {
-	Id   string `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 

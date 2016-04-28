@@ -26,7 +26,7 @@ func TestGetComments(t *testing.T) {
 		if len(comments.List) == 0 {
 			t.Error("Received unexpected comment count of 0.")
 		} else {
-			if comments.List[0].Id == "" {
+			if comments.List[0].ID == "" {
 				t.Errorf("Didn't expect the first comment not to have any id.")
 			}
 		}

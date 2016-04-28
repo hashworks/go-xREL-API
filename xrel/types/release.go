@@ -9,9 +9,9 @@ type Releases struct {
 }
 
 type Release struct {
-	Id          string       `json:"id"`
+	ID          string       `json:"id"`
 	Dirname     string       `json:"dirname"`
-	LinkHref    string       `json:"link_href"`
+	LinkURL     string       `json:"link_href"`
 	TimeUnix    int64        `json:"time"`
 	GroupName   string       `json:"group_name"`
 	NukeReason  string       `json:"nuke_reason"`
@@ -52,7 +52,7 @@ type Category struct {
 }
 
 type Filter struct {
-	Id   int    `json:"id"`
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 

@@ -9,9 +9,9 @@ type P2PReleases struct {
 }
 
 type P2PRelease struct {
-	Id           string       `json:"id"`
+	ID           string       `json:"id"`
 	Dirname      string       `json:"dirname"`
-	LinkHref     string       `json:"link_href"`
+	LinkURL      string       `json:"link_href"`
 	MainLanguage string       `json:"main_lang"`
 	PubTimeUnix  int64        `json:"pub_time"`
 	PostTimeUnix int64        `json:"post_time"`
@@ -27,12 +27,12 @@ type P2PRelease struct {
 }
 
 type Group struct {
-	Id   string `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
 type P2PCategory struct {
-	Id      string `json:"id"`
+	ID      string `json:"id"`
 	MetaCat string `json:"meta_cat"`
 	SubCat  string `json:"sub_cat"`
 }

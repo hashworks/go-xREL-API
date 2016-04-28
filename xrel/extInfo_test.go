@@ -14,8 +14,8 @@ func TestGetExtInfo(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		if eInfo.Id != id {
-			t.Errorf("Expected id '%s', received '%s'.", id, eInfo.Id)
+		if eInfo.ID != id {
+			t.Errorf("Expected id '%s', received '%s'.", id, eInfo.ID)
 		}
 		if eInfo.Type != "game" {
 			t.Errorf("Expected type 'game', received '%s'.", eInfo.Type)

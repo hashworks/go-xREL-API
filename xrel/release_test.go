@@ -11,7 +11,7 @@ func TestGetReleaseInfo(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	} else {
-		if ri.Id != "e14fc6ad27fda" {
+		if ri.ID != "e14fc6ad27fda" {
 			t.Error("Unexpected id")
 		}
 	}
@@ -49,7 +49,7 @@ func TestGetLatestReleases(t *testing.T) {
 		if len(rl.List) == 0 {
 			t.Error("Received unexpected release count of 0.")
 		} else {
-			if rl.List[0].Id == "" {
+			if rl.List[0].ID == "" {
 				t.Errorf("Didn't expect the first release not to have any id.")
 			}
 		}
@@ -70,7 +70,7 @@ func TestGetLatestReleases(t *testing.T) {
 		if len(rl.List) == 0 {
 			t.Error("Received unexpected release count of 0.")
 		} else {
-			if rl.List[0].Id == "" {
+			if rl.List[0].ID == "" {
 				t.Errorf("Didn't expect the first release not to have any id.")
 			}
 		}
@@ -129,7 +129,7 @@ func TestBrowseReleaseCategory(t *testing.T) {
 		if len(rl.List) != 6 {
 			t.Error("Received unexpected release count of %d.", len(rl.List))
 		} else {
-			if rl.List[0].Id == "" {
+			if rl.List[0].ID == "" {
 				t.Error("Didn't expect the id of the first release to be empty.")
 			}
 		}
@@ -170,7 +170,7 @@ func TestGetReleaseByExtInfoID(t *testing.T) {
 		if len(rl.List) != 6 {
 			t.Error("Received unexpected release count of %d.", len(rl.List))
 		} else {
-			if rl.List[0].Id == "" {
+			if rl.List[0].ID == "" {
 				t.Error("Didn't expect the id of the first release to be empty.")
 			}
 		}

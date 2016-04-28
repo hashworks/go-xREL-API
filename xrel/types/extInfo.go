@@ -3,23 +3,23 @@ package types
 import "time"
 
 type ShortExtInfo struct {
-	Id         string   `json:"id"`
+	ID         string   `json:"id"`
 	Type       string   `json:"type"`
 	Title      string   `json:"title"`
-	LinkHref   string   `json:"link_href"`
+	LinkURL    string   `json:"link_href"`
 	Rating     float32  `json:"rating"`
 	NumRatings int      `json:"num_ratings"`
 	URIs       []string `json:"uris"`
 }
 
 type ExtendedExtInfo struct {
-	Id           string               `json:"id"`
+	ID           string               `json:"id"`
 	Type         string               `json:"type"`
 	Title        string               `json:"title"`
-	LinkHref     string               `json:"link_href"`
+	LinkURL      string               `json:"link_href"`
 	Genre        string               `json:"genre"`
 	AltTitle     string               `json:"alt_title"`
-	CoverUrl     string               `json:"cover_url"`
+	CoverURL     string               `json:"cover_url"`
 	URIs         []string             `json:"uris"`
 	Rating       float32              `json:"rating"`
 	OwnRating    string               `json:"own_rating"`
@@ -37,12 +37,12 @@ type ExtInfoReleaseDate struct {
 
 type ExtInfoExternal struct {
 	Source  ExtInfoExternalSource `json:"source"`
-	LinkUrl string                `json:"link_url"`
+	LinkURL string                `json:"link_url"`
 	Plot    string                `json:"plot"`
 }
 
 type ExtInfoExternalSource struct {
-	Id   int    `json:"id"`
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 

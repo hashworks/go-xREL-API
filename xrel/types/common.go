@@ -1,4 +1,4 @@
-// Contains structs and constants for the xREL package, reflecting the xREL API JSON returns.
+// Package types contains structs and constants for the xREL package, reflecting the xREL API JSON returns.
 package types
 
 const (

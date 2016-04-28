@@ -6,7 +6,7 @@ import (
 )
 
 type FavList struct {
-	Id             int    `json:"id"`
+	ID             int    `json:"id"`
 	Name           string `json:"name"`
 	IsPublic       bool   `json:"public"`
 	DoNotify       bool   `json:"notify"`
@@ -19,9 +19,9 @@ type FavList struct {
 }
 
 /*
-	Test if a password for a list is correct.
+TestPassword tests if a password for a list is correct.
 
-	https://www.xrel.to/wiki/1754/api-favs-lists.html
+https://www.xrel.to/wiki/1754/api-favs-lists.html
 */
 func (f *FavList) TestPassword(password string) bool {
 	if f.PasswordHash == "" {
@@ -42,7 +42,7 @@ func (f *FavList) TestPassword(password string) bool {
 }
 
 type ShortFavList struct {
-	Id             int    `json:"id"`
+	ID             int    `json:"id"`
 	Name           string `json:"string"`
 	EntryCount     int    `json:"entry_count"`
 	UnreadReleases int    `json:"unread_releases"`

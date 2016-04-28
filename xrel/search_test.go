@@ -18,7 +18,7 @@ func TestSearchReleases(t *testing.T) {
 		if len(rl.SceneResults) != limit {
 			t.Error("Expected the scene release count to be %d, was %d.", limit, len(rl.SceneResults))
 		} else {
-			if rl.SceneResults[0].Id == "" {
+			if rl.SceneResults[0].ID == "" {
 				t.Error("Didn't expect the id of the first release to be empty.")
 			}
 		}
@@ -42,7 +42,7 @@ func TestSearchExtInfos(t *testing.T) {
 		if len(ei.Results) != limit {
 			t.Errorf("Expected the result count to be %d, was %d.", limit, len(ei.Results))
 		} else {
-			if ei.Results[0].Id == "" {
+			if ei.Results[0].ID == "" {
 				t.Error("Didn't expect the id of the first result to be empty.")
 			}
 		}
