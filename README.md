@@ -42,5 +42,6 @@ ok(err)
 ```
 
 ## TODO
+* Add token-only authentication
 * Implement tests for oAuth2 authentication
 * Implement tests for methods that require oAuth2 authentication
