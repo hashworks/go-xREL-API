@@ -26,7 +26,7 @@ type Release struct {
 	TVEpisode   int          `json:"tv_episode"`
 	Comments    int          `json:"comments"`
 	Flags       Flags        `json:"flags"`
-	ProofUrl    string       `json:"proof_url"`
+	ProofURL    string       `json:"proof_url"`
 }
 
 func (release *Release) GetTime() time.Time {

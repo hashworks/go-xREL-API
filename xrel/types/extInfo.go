@@ -55,9 +55,9 @@ type ExtInfoMediaItem struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`
 	TimeUnix    int64  `json:"time"`
-	UrlFull     string `json:"url_full"` // IsImage()
-	UrlThumb    string `json:"url_thumb"`
-	YoutubeId   string `json:"youtube_id"` // IsVideo()
+	URLFull     string `json:"url_full"` // IsImage()
+	URLThumb    string `json:"url_thumb"`
+	YoutubeID   string `json:"youtube_id"` // IsVideo()
 	VideoURL    string `json:"video_url"`  // IsVideo()
 }
 
