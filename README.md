@@ -40,3 +40,7 @@ err := xrel.InitiateOAuth2CodeExchange(verificationCode)
 ok(err)
 
 ```
+
+## TODO
+* Implement tests for oAuth2 authentication
+* Implement tests for methods that require oAuth2 authentication
