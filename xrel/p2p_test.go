@@ -14,7 +14,7 @@ func TestGetP2PReleaseInfo(t *testing.T) {
 	test404Request(t, err)
 
 	// https://www.xrel.to/p2p/11238-Killer-Elite-2011-German-AC3D-DL-720p-HDTV-x264-TwixX/nfo.html
-	relById, err := GetP2PReleaseInfo("6dbb52db2be6", true)
+	relByID, err := GetP2PReleaseInfo("6dbb52db2be6", true)
 	testRateLimit(t, err)
 	if err != nil {
 		t.Error(err.Error())
@@ -26,22 +26,22 @@ func TestGetP2PReleaseInfo(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
-	if relById.Id == "" {
+	if relByID.Id == "" {
 		t.Error("Didn't expect the id to be empty.")
 	}
-	if relById.Id != relByDirname.Id {
+	if relByID.Id != relByDirname.Id {
 		t.Error("Expected to receive the same ids by id and by dirname but tjey are different.")
 	}
-	if relById.Dirname == "" {
+	if relByID.Dirname == "" {
 		t.Error("Didn't expect the dirname to be empty.")
 	}
-	if relById.Dirname != relByDirname.Dirname {
+	if relByID.Dirname != relByDirname.Dirname {
 		t.Error("Expected to receive the same dirname by id and by dirname but they are different.")
 	}
 }
 
 // HD-1080p
-const catId = "968f458a2"
+const catID = "968f458a2"
 
 func TestGetP2PCategories(t *testing.T) {
 	cats, err := GetP2PCategories()
@@ -54,7 +54,7 @@ func TestGetP2PCategories(t *testing.T) {
 		} else {
 			exists := false
 			for i := range cats {
-				if cats[i].Id == catId {
+				if cats[i].Id == catID {
 					exists = true
 					break
 				}
@@ -80,7 +80,7 @@ func TestGetP2PReleases(t *testing.T) {
 	//	test404Request(t, err)
 
 	// Test category request
-	releases, err := GetP2PReleases(perPage, page, catId, "", "")
+	releases, err := GetP2PReleases(perPage, page, catID, "", "")
 	testRateLimit(t, err)
 
 	if err != nil {
@@ -103,8 +103,8 @@ func TestGetP2PReleases(t *testing.T) {
 
 	// Test group request
 	// https://www.xrel.to/p2p/11238-Killer-Elite-2011-German-AC3D-DL-720p-HDTV-x264-TwixX/nfo.html
-	const groupId = "13c6f87f6f"
-	releases, err = GetP2PReleases(perPage, page, "", groupId, "")
+	const groupID = "13c6f87f6f"
+	releases, err = GetP2PReleases(perPage, page, "", groupID, "")
 	testRateLimit(t, err)
 
 	if err != nil {

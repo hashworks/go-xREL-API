@@ -234,7 +234,7 @@ func GetReleaseByExtInfoID(id string, perPage, page int) (types.Releases, error)
 	return getReleases(apiURL + "release/ext_info.json" + query)
 }
 
-/**
+/*
 AddReleaseProofImage adds the base64 of a proof picture to a given API release id.
 More info on proof pictures can be found here: https://www.xrel.to/wiki/6305/Proofs.html
 
@@ -269,7 +269,7 @@ func AddReleaseProofImage(ids []string, imageBase64 string) (types.AddProofResul
 	return proofResult, err
 }
 
-/**
+/*
 AddReleaseProofImage adds a proof picture to a given API release id by filepath.
 More info on proof pictures can be found here: https://www.xrel.to/wiki/6305/Proofs.html
 

@@ -4,7 +4,7 @@ const ERROR_TYPE_CLIENT = "client"
 const ERROR_TYPE_OAUTH = "oauth2"
 const ERROR_TYPE_API = "api"
 
-/**
+/*
 All methods may return this struct, which implements the normal `error` type.
 Additional to the `Error()` function this struct contains some variables.
 

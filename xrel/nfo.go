@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-/**
-GetNFOById returns PNG image data of a NFO file for a given release id.
+/*
+GetNFOByID returns PNG image data of a NFO file for a given release id.
 Requires OAuth2 authentication.
 
 Please cache the file on your device. You may not modify the image in any way or hide the footer.
@@ -14,7 +14,7 @@ Please cache the file on your device. You may not modify the image in any way or
 https://www.xrel.to/wiki/6438/api-nfo-release.html
 https://www.xrel.to/wiki/6437/api-nfo-p2p-rls.html
 */
-func GetNFOById(id string, isP2P bool) ([]byte, error) {
+func GetNFOByID(id string, isP2P bool) ([]byte, error) {
 	var (
 		base64Image []byte
 		err         error

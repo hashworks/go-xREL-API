@@ -14,7 +14,7 @@ var oauth2Config = &oauth2.Config{
 }
 
 /*
-SetOAuthConsumerKeyAndSecret sets the OAuth consumer key and secret you received from xREL.
+ConfigureOAuth2 sets the OAuth consumer key and secret you received from xREL.
 If you set no redirectURL xREL will display the code to the user.
 Get them here: http://www.xrel.to/api-apps.html
 */
@@ -28,14 +28,14 @@ func ConfigureOAuth2(clientKey, clientSecret string, redirectURL string, scopes 
 }
 
 /*
-GetOAuthRequestURL returns an URL where the user can login and get a verification code from.
+GetOAuth2RequestURL returns an URL where the user can login and get a verification code from.
 */
 func GetOAuth2RequestURL() string {
 	return oauth2Config.AuthCodeURL("state", oauth2.AccessTypeOnline)
 }
 
 /*
-Initiate the verification code exchange. On success, xREL will return a token we are gonna save in the Config variable.
+InitiateOAuth2CodeExchange initiates the verification code exchange. On success, xREL will return a token we are gonna save in the Config variable.
 */
 func InitiateOAuth2CodeExchange(code string) error {
 	token, err := oauth2Config.Exchange(oauth2.NoContext, code)

@@ -45,18 +45,18 @@ func GetFavsLists() ([]types.FavList, error) {
 GetFavsListEntries returns entries of a favorite list.
 Requires OAuth2 authentication.
 
-	id						The favorite list ID, as obtained through GetFavsLists().
+	favsListID				The favorite list ID, as obtained through GetFavsLists().
 	getReleases	:= false	If true, an inline list of unread(!) releases will be returned with each ext_info entry.
 
 http://www.xrel.to/wiki/1823/api-favs-list-entries.html
 */
-func GetFavsListEntries(favsListId string, getReleases bool) ([]types.ExtendedExtInfo, error) {
+func GetFavsListEntries(favsListID string, getReleases bool) ([]types.ExtendedExtInfo, error) {
 	var (
 		extendedExtInfos []types.ExtendedExtInfo
 		err              error
 	)
 
-	if favsListId == "" {
+	if favsListID == "" {
 		return extendedExtInfos, types.NewError("client", "argument_missing", "favsListId", "")
 	}
 
@@ -64,7 +64,7 @@ func GetFavsListEntries(favsListId string, getReleases bool) ([]types.ExtendedEx
 	client, err = getOAuth2Client()
 	if err == nil {
 		parameters := url.Values{}
-		parameters.Add("id", favsListId)
+		parameters.Add("id", favsListID)
 		if getReleases {
 			parameters.Add("get_releases", "true")
 		}
@@ -90,21 +90,21 @@ func GetFavsListEntries(favsListId string, getReleases bool) ([]types.ExtendedEx
 AddFavsListEntry adds an ExtInfo to a favorite list.
 Requires OAuth2 authentication.
 
-	id			The favorite list ID, as obtained through GetFavsLists().
+	favsListID	The favorite list ID, as obtained through GetFavsLists().
 	extInfoID	The Ext Info ID, as obtained through other API calls.
 
 http://www.xrel.to/wiki/6316/api-favs-list-addentry.html
 */
-func AddFavsListEntry(favsListId, extInfoId string) (types.FavListEntryModificationResult, error) {
+func AddFavsListEntry(favsListID, extInfoID string) (types.FavListEntryModificationResult, error) {
 	var (
 		favListAddEntryResult types.FavListEntryModificationResult
 		err                   error
 	)
 
-	if favsListId == "" {
+	if favsListID == "" {
 		return favListAddEntryResult, types.NewError("client", "argument_missing", "favsListId", "")
 	}
-	if extInfoId == "" {
+	if extInfoID == "" {
 		return favListAddEntryResult, types.NewError("client", "argument_missing", "extInfoId", "")
 	}
 
@@ -112,8 +112,8 @@ func AddFavsListEntry(favsListId, extInfoId string) (types.FavListEntryModificat
 	client, err = getOAuth2Client()
 	if err == nil {
 		parameters := url.Values{}
-		parameters.Add("id", favsListId)
-		parameters.Add("ext_info_id", extInfoId)
+		parameters.Add("id", favsListID)
+		parameters.Add("ext_info_id", extInfoID)
 		var response *http.Response
 		response, err = client.PostForm(apiURL+"favs/list_addentry.json", parameters)
 		defer response.Body.Close()
@@ -136,21 +136,21 @@ func AddFavsListEntry(favsListId, extInfoId string) (types.FavListEntryModificat
 RemoveFavsListEntry removes an ExtInfo from a favorite list.
 Requires OAuth2 authentication.
 
-	id			The favorite list ID, as obtained through GetFavsLists().
+	favsListID	The favorite list ID, as obtained through GetFavsLists().
 	extInfoID	The ExtInfo ID, as obtained through other API calls.
 
 http://www.xrel.to/wiki/6317/api-favs-list-delentry.html
 */
-func RemoveFavsListEntry(favsListId, extInfoId string) (types.FavListEntryModificationResult, error) {
+func RemoveFavsListEntry(favsListID, extInfoID string) (types.FavListEntryModificationResult, error) {
 	var (
 		favListRemoveEntryResult types.FavListEntryModificationResult
 		err                      error
 	)
 
-	if favsListId == "" {
+	if favsListID == "" {
 		return favListRemoveEntryResult, types.NewError("client", "argument_missing", "favsListId", "")
 	}
-	if extInfoId == "" {
+	if extInfoID == "" {
 		return favListRemoveEntryResult, types.NewError("client", "argument_missing", "extInfoId", "")
 	}
 
@@ -158,8 +158,8 @@ func RemoveFavsListEntry(favsListId, extInfoId string) (types.FavListEntryModifi
 	client, err = getOAuth2Client()
 	if err == nil {
 		parameters := url.Values{}
-		parameters.Add("id", favsListId)
-		parameters.Add("ext_info_id", extInfoId)
+		parameters.Add("id", favsListID)
+		parameters.Add("ext_info_id", extInfoID)
 		var response *http.Response
 		response, err = client.PostForm(apiURL+"favs/list_delentry.json", parameters)
 		defer response.Body.Close()
@@ -182,22 +182,22 @@ func RemoveFavsListEntry(favsListId, extInfoId string) (types.FavListEntryModifi
 MarkFavsListEntryAsRead marks a release on a favorite list as read.
 Requires OAuth2 authentication.
 
-	id			The favorite list ID, as obtained through GetFavsLists().
-	releaseId	The API release ID, as obtained through other API calls.
+	favsListID	The favorite list ID, as obtained through GetFavsLists().
+	releaseID	The API release ID, as obtained through other API calls.
 	isP2P		Is the release ID a P2P release?
 
 https://www.xrel.to/wiki/6344/api-favs-list-markread.html
 */
-func MarkFavsListEntryAsRead(favsListId, releaseId string, isP2P bool) (types.ShortFavList, error) {
+func MarkFavsListEntryAsRead(favsListID, releaseID string, isP2P bool) (types.ShortFavList, error) {
 	var (
 		shortFavList types.ShortFavList
 		err          error
 	)
 
-	if favsListId == "" {
+	if favsListID == "" {
 		return shortFavList, types.NewError("client", "argument_missing", "favsListId", "")
 	}
-	if releaseId == "" {
+	if releaseID == "" {
 		return shortFavList, types.NewError("client", "argument_missing", "releaseId", "")
 	}
 
@@ -205,8 +205,8 @@ func MarkFavsListEntryAsRead(favsListId, releaseId string, isP2P bool) (types.Sh
 	client, err = getOAuth2Client()
 	if err == nil {
 		parameters := url.Values{}
-		parameters.Add("id", favsListId)
-		parameters.Add("release_id", releaseId)
+		parameters.Add("id", favsListID)
+		parameters.Add("release_id", releaseID)
 		if isP2P {
 			parameters.Add("type", "p2p_rls")
 		} else {

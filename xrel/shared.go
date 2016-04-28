@@ -54,9 +54,8 @@ func checkResponse(response *http.Response) error {
 		err = json.Unmarshal(bytes, &xErr)
 		if err == nil {
 			return xErr
-		} else {
-			extra = string(bytes)
 		}
+		extra = string(bytes)
 	}
 
 	if response.StatusCode == 404 {
