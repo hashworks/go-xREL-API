@@ -270,7 +270,7 @@ func AddReleaseProofImage(ids []string, imageBase64 string) (types.AddProofResul
 }
 
 /*
-AddReleaseProofImage adds a proof picture to a given API release id by filepath.
+AddReleaseProofImageByPath adds a proof picture to a given API release id by filepath.
 More info on proof pictures can be found here: https://www.xrel.to/wiki/6305/Proofs.html
 
 Please read the rules before posting proofs: https://www.xrel.to/wiki/6308/Regeln-Proofs.html
