@@ -4,15 +4,33 @@ const ERROR_TYPE_CLIENT = "client"
 const ERROR_TYPE_OAUTH = "oauth2"
 const ERROR_TYPE_API = "api"
 
+/**
+All methods may return this struct, which implements the normal `error` type.
+Additional to the `Error()` function this struct contains some variables.
+
+Errors with type `ERROR_TYPE_API` are xREL.to errors (https://www.xrel.to/wiki/6435/api-errors.html), for all other
+types and error codes see the `NewError` function.
+
+To use this in your code try to cast it:
+err := xrel.SomeMethod()
+if eErr, ok := err.(*types.Error); ok {
+	// Is of type types.Error, you can use the variables
+} else {
+	// Is normal error
+}
+*/
 type Error struct {
 	Type        string `json:"error_type"`
 	Code        string `json:"error"`
 	Extra       string
-	Description string `json:"error_description"`
+	description string `json:"error_description"`
 }
 
+/**
+Returns the error description.
+*/
 func (e *Error) Error() string {
-	return e.Description
+	return e.description
 }
 
 /**
@@ -66,6 +84,6 @@ func NewError(errorType, errorCode, errorExtra, errorDesc string) *Error {
 			errorDesc = "Unknown error code '" + err.Code + "'. Please report to: https://github.com/hashworks/go-xREL-API/issues"
 		}
 	}
-	err.Description = errorDesc
+	err.description = errorDesc
 	return err
 }
