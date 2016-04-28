@@ -1,102 +1,69 @@
 /*
 Package xrel contains functions to authorize with and access the complete xREL.to API.
 
-Here is an example on how to use the OAuth authentication:
+Here is an example on how to use the OAuth2 authentication:
 
-	xREL.SetOAuthConsumerKeyAndSecret("CONSUMER_KEY", "CONSUMER_SECRET")
-	requestToken, url, err := xREL.GetOAuthRequestTokenAndUrl()
+	xrel.ConfigureOAuth2("OAUTH2_CLIENT_KEY", "OAUTH2_CLIENT_SECRET", "", []string{"viewnfo", "addproof"})
+	fmt.Println("(1) Go to: " + xrel.GetOAuth2RequestURL())
+	fmt.Println("(2) Grant access, you should get back a verification code.")
+	fmt.Print("(3) Enter that verification code here: ")
+	verificationCode := ""
+	fmt.Scanln(&verificationCode)
+	err := xrel.InitiateOAuth2CodeExchange(verificationCode)
 	ok(err)
-	// get verificationCode from the provided URL
-	accessToken, err := xREL.GetOAuthAccessToken(requestToken, verificationCode)
-	ok(err)
-	xREL.Config.OAuthAccessToken = *accessToken
 
 */
 package xrel
 
 import (
-	"errors"
+	"encoding/json"
 	"github.com/hashworks/go-xREL-API/xrel/types"
-	"github.com/mrjones/oauth"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 )
 
-const apiURL = "http://api.xrel.to/api/"
+const apiURL = "https://api.xrel.to/v2/"
 
-/*
-Config contains the OAuth Token and cached results. Save this somewhere and restore it on every run.
- */
-var Config = struct {
-	OAuthAccessToken oauth.AccessToken
-
-	// 24h caching http://www.xrel.to/wiki/6318/api-release-categories.html
-	LastCategoryRequest int64
-	Categories          []types.Category
-
-	// 24h caching http://www.xrel.to/wiki/2996/api-release-filters.html
-	LastFilterRequest int64
-	Filters           []types.Filter
-
-	// 24h caching http://www.xrel.to/wiki/3698/api-p2p-categories.html
-	LastP2PCategoryRequest int64
-	P2PCategories          []types.P2PCategory
-}{}
-
-/*
-stripeJSON removes /*-secure-\n{"payload":\n and their closings surrounding xREL.to JSON responds.
-Follow the xREL API changelog, we might need to remove this partly in future releases.
-*/
-func stripeJSON(json []byte) ([]byte, error) {
-	end := len(json)-4
-	if end > 22 {
-		return json[22 : end], nil
+func checkResponse(response *http.Response) error {
+	if response.Header.Get("x-ratelimit-limit") != "" {
+		types.Config.RateLimitMax, _ = strconv.Atoi(response.Header.Get("x-ratelimit-limit"))
 	}
-	return []byte{}, errors.New("Failed to parse xREL.to response\n" + string(json))
-}
-
-/*
-getClient returns an OAuth client if authenticated and a normal client otherwise.
-*/
-func getClient() *http.Client {
-	client, err := getOAuthClient()
-	if err != nil {
-		client = http.DefaultClient
+	if response.Header.Get("x-ratelimit-remaining") != "" {
+		types.Config.RateLimitRemaining, _ = strconv.Atoi(response.Header.Get("x-ratelimit-remaining"))
 	}
-	return client
-}
-
-func getOAuthClient() (*http.Client, error) {
-	var (
-		client *http.Client
-		err    error
-	)
-
-	if err == nil && Config.OAuthAccessToken.Token != "" && Config.OAuthAccessToken.Secret != "" {
-		client, err = makeOAuthClient(Config.OAuthAccessToken)
-	} else {
-		err = errors.New("You're not authenticated.")
+	if response.Header.Get("x-ratelimit-reset") != "" {
+		types.Config.RateLimitResetUnix, _ = strconv.ParseInt(response.Header.Get("x-ratelimit-reset"), 10, 32)
 	}
 
-	return client, err
-}
-
-func checkResponseStatusCode(statusCode int) error {
-	var err error
-
-	switch statusCode {
+	switch response.StatusCode {
 	case 200:
+		var err error
 		return err
 	case 429:
-		err = errors.New("Rate limit reached (http://www.xrel.to/wiki/2727/api-rate-limiting.html). Please try again later.")
-	case 404:
-		err = errors.New("Not found.")
-	// TODO: Find out what happens if we send wrong or expired OAuth data
-	default:
-		err = errors.New("xREL returned unexpected HTTP status code " + strconv.Itoa(statusCode) + ".")
+		return types.NewError("api", "ratelimit_reached", "", "")
+	case 500:
+		return types.NewError("api", "internal_error", "", "")
 	}
 
-	return err
+	var extra string
+
+	bytes, err := ioutil.ReadAll(response.Body)
+	if err == nil {
+		var xErr *types.Error
+		err = json.Unmarshal(bytes, &xErr)
+		if err == nil {
+			return xErr
+		} else {
+			extra = string(bytes)
+		}
+	}
+
+	if response.StatusCode == 404 {
+		return types.NewError("client", "function_not_found", "", "")
+	}
+
+	return types.NewError("client", "parsing_failed", err.Error()+"\n"+extra, "")
 }
 
 func generateGetParametersString(parameters map[string]string) string {
@@ -112,4 +79,16 @@ func generateGetParametersString(parameters map[string]string) string {
 	}
 
 	return query
+}
+
+/*
+getClient returns an OAuth2 client if authenticated and a normal client otherwise.
+*/
+func getClient() *http.Client {
+	var client *http.Client
+	client, err := getOAuth2Client()
+	if err != nil {
+		client = http.DefaultClient
+	}
+	return client
 }

@@ -9,22 +9,21 @@ type P2PReleases struct {
 }
 
 type P2PRelease struct {
-	Id                string       `json:"id"`
-	Dirname           string       `json:"dirname"`
-	DirnameNormalized string       `json:"dirname_normalized"`
-	LinkHref          string       `json:"link_href"`
-	MainLanguage      string       `json:"main_lang"`
-	PubTimeUnix       int64        `json:"pub_time"`
-	PostTimeUnix      int64        `json:"post_time"`
-	SizeInMB          int          `json:"size_mb"`
-	Group             Group        `json:"group"`
-	NumRatings        int          `json:"num_ratings"`
-	VideoRating       float32      `json:"video_rating"`
-	AudioRating       float32      `json:"audio_rating"`
-	ExtInfo           ShortExtInfo `json:"ext_info"`
-	TVSeason          int          `json:"tv_season"`
-	TVEpisode         int          `json:"tv_episode"`
-	Comments          int          `json:"comments"`
+	Id           string       `json:"id"`
+	Dirname      string       `json:"dirname"`
+	LinkHref     string       `json:"link_href"`
+	MainLanguage string       `json:"main_lang"`
+	PubTimeUnix  int64        `json:"pub_time"`
+	PostTimeUnix int64        `json:"post_time"`
+	SizeInMB     int          `json:"size_mb"`
+	Group        Group        `json:"group"`
+	NumRatings   int          `json:"num_ratings"`
+	VideoRating  float32      `json:"video_rating"`
+	AudioRating  float32      `json:"audio_rating"`
+	ExtInfo      ShortExtInfo `json:"ext_info"`
+	TVSeason     int          `json:"tv_season"`
+	TVEpisode    int          `json:"tv_episode"`
+	Comments     int          `json:"comments"`
 }
 
 type Group struct {

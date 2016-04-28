@@ -2,7 +2,6 @@ package xrel
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/hashworks/go-xREL-API/xrel/types"
 	"io/ioutil"
 	"net/http"
@@ -22,22 +21,19 @@ func GetExtInfo(id string) (types.ExtendedExtInfo, error) {
 	)
 
 	if id == "" {
-		err = errors.New("Please provide an extInfo ID.")
+		err = types.NewError("client", "argument_missing", "id", "")
 	} else {
 		client := getClient()
 		var response *http.Response
 		response, err = client.Get(apiURL + "ext_info/info.json?id=" + id)
 		defer response.Body.Close()
 		if err == nil {
-			err = checkResponseStatusCode(response.StatusCode)
+			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
 				bytes, err = ioutil.ReadAll(response.Body)
 				if err == nil {
-					bytes, err = stripeJSON(bytes)
-					if err == nil {
-						err = json.Unmarshal(bytes, &extInfoStruct)
-					}
+					err = json.Unmarshal(bytes, &extInfoStruct)
 				}
 			}
 		}
@@ -58,22 +54,19 @@ func GetExtInfoMedia(id string) ([]types.ExtInfoMediaItem, error) {
 	)
 
 	if id == "" {
-		err = errors.New("Please provide an extInfo ID.")
+		err = types.NewError("client", "argument_missing", "id", "")
 	} else {
 		client := getClient()
 		var response *http.Response
 		response, err = client.Get(apiURL + "ext_info/media.json?id=" + id)
 		defer response.Body.Close()
 		if err == nil {
-			err = checkResponseStatusCode(response.StatusCode)
+			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
 				bytes, err = ioutil.ReadAll(response.Body)
 				if err == nil {
-					bytes, err = stripeJSON(bytes)
-					if err == nil {
-						err = json.Unmarshal(bytes, &extInfoMediaItemsStruct)
-					}
+					err = json.Unmarshal(bytes, &extInfoMediaItemsStruct)
 				}
 			}
 		}
@@ -98,12 +91,12 @@ func RateExtInfo(id string, rating int) (types.ExtendedExtInfo, error) {
 	)
 
 	if id == "" {
-		err = errors.New("Please provide an extInfo ID.")
+		err = types.NewError("client", "argument_missing", "id", "")
 	} else if rating < 1 || rating > 10 {
-		err = errors.New("Please provide an rating between 1 (bad) and 10 (good).")
+		err = types.NewError("client", "argument_missing", "rating", "")
 	} else {
 		var client *http.Client
-		client, err = getOAuthClient()
+		client, err = getOAuth2Client()
 		if err == nil {
 			var parameters = url.Values{}
 			parameters.Add("id", id)
@@ -112,15 +105,12 @@ func RateExtInfo(id string, rating int) (types.ExtendedExtInfo, error) {
 			response, err = client.PostForm(apiURL+"ext_info/rate.json", parameters)
 			defer response.Body.Close()
 			if err == nil {
-				err = checkResponseStatusCode(response.StatusCode)
+				err = checkResponse(response)
 				if err == nil {
 					var bytes []byte
 					bytes, err = ioutil.ReadAll(response.Body)
 					if err == nil {
-						bytes, err = stripeJSON(bytes)
-						if err == nil {
-							err = json.Unmarshal(bytes, &extInfoStruct)
-						}
+						err = json.Unmarshal(bytes, &extInfoStruct)
 					}
 				}
 			}

@@ -52,6 +52,11 @@ type Category struct {
 }
 
 type Filter struct {
-	Id   string `json:"id"`
+	Id   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+type AddProofResult struct {
+	ProofURL   string   `json:"proof_url"`
+	ReleaseIDs []string `json:"releases"`
 }

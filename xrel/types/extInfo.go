@@ -42,9 +42,14 @@ type ExtInfoExternal struct {
 }
 
 type ExtInfoExternalSource struct {
-	Id   string `json:"id"`
+	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+const (
+	MEDIA_TYPE_IMAGE = "image"
+	MEDIA_TYPE_VIDEO = "video"
+)
 
 type ExtInfoMediaItem struct {
 	Type        string `json:"type"`
@@ -54,20 +59,6 @@ type ExtInfoMediaItem struct {
 	UrlThumb    string `json:"url_thumb"`
 	YoutubeId   string `json:"youtube_id"` // IsVideo()
 	VideoURL    string `json:"video_url"`  // IsVideo()
-}
-
-func (extInfoMediaItem ExtInfoMediaItem) IsImage() bool {
-	if extInfoMediaItem.Type == "image" {
-		return true
-	}
-	return false
-}
-
-func (extInfoMediaItem ExtInfoMediaItem) IsVideo() bool {
-	if extInfoMediaItem.Type == "video" {
-		return true
-	}
-	return false
 }
 
 func (extInfoMediaItem *ExtInfoMediaItem) GetTime() time.Time {

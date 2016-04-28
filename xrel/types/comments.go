@@ -1,19 +1,16 @@
 package types
 
-import (
-	"strconv"
-	"time"
-)
+import "time"
 
 type Comments struct {
-	TotalCount string     `json:"total_count"`
+	TotalCount int        `json:"total_count"`
 	Pagination Pagination `json:"pagination"`
 	List       []Comment  `json:"list"`
 }
 
 type Comment struct {
 	Id       string `json:"id"`
-	TimeUnix string `json:"time"`
+	TimeUnix int64  `json:"time"`
 	Author   Author `json:"author"`
 	Text     string `json:"text"`
 	LinkHref string `json:"link_href"`
@@ -22,14 +19,18 @@ type Comment struct {
 	Edits    Edits  `json:"edits"`
 }
 
+func (c *Comment) GetTime() time.Time {
+	return time.Unix(c.TimeUnix, 0)
+}
+
 type Author struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
 type Rating struct {
-	Video string `json:"video"`
-	Audio string `json:"audio"`
+	Video int `json:"video"`
+	Audio int `json:"audio"`
 }
 
 type Votes struct {
@@ -38,24 +39,10 @@ type Votes struct {
 }
 
 type Edits struct {
-	Count    int    `json:"count"`
-	LastUnix string `json:"last"`
+	Count    int   `json:"count"`
+	LastUnix int64 `json:"last"`
 }
 
-func (comment *Comment) GetTime() (time.Time, error) {
-	var timeResult time.Time
-	commentTime, err := strconv.ParseInt(comment.TimeUnix, 10, 64)
-	if err == nil && commentTime != 0 {
-		timeResult = time.Unix(commentTime, 0)
-	}
-	return timeResult, err
-}
-
-func (edits *Edits) GetLast() (time.Time, error) {
-	var timeResult time.Time
-	lastEdit, err := strconv.ParseInt(edits.LastUnix, 10, 64)
-	if err == nil && lastEdit != 0 {
-		timeResult = time.Unix(lastEdit, 0)
-	}
-	return timeResult, err
+func (edits *Edits) GetLastEditTime() time.Time {
+	return time.Unix(edits.LastUnix, 0)
 }

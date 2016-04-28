@@ -2,7 +2,6 @@ package xrel
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/hashworks/go-xREL-API/xrel/types"
 	"io/ioutil"
 	"net/http"
@@ -28,7 +27,7 @@ func SearchReleases(query string, includeScene, includeP2P bool, limit int) (typ
 	)
 
 	if query == "" {
-		err = errors.New("Please provide a query string.")
+		err = types.NewError("client", "argument_missing", "query", "")
 	} else {
 		parameters := make(map[string]string)
 		parameters["q"] = url.QueryEscape(query)
@@ -55,17 +54,14 @@ func SearchReleases(query string, includeScene, includeP2P bool, limit int) (typ
 		client := getClient()
 		var response *http.Response
 		response, err = client.Get(apiURL + "search/releases.json" + query)
-		defer response.Body.Close()
 		if err == nil {
-			err = checkResponseStatusCode(response.StatusCode)
+			defer response.Body.Close()
+			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
 				bytes, err = ioutil.ReadAll(response.Body)
 				if err == nil {
-					bytes, err = stripeJSON(bytes)
-					if err == nil {
-						err = json.Unmarshal(bytes, &searchResult)
-					}
+					err = json.Unmarshal(bytes, &searchResult)
 				}
 			}
 		}
@@ -91,7 +87,7 @@ func SearchExtInfos(query, extInfoType string, limit int) (types.ExtInfoSearchRe
 	)
 
 	if query == "" {
-		err = errors.New("Please provide a query string.")
+		err = types.NewError("client", "argument_missing", "query", "")
 	} else {
 		query = "?q=" + url.QueryEscape(query)
 		if limit != 0 {
@@ -108,8 +104,7 @@ func SearchExtInfos(query, extInfoType string, limit int) (types.ExtInfoSearchRe
 		case "movie", "tv", "game", "console", "software", "xxx":
 			query += "&type=" + extInfoType
 		default:
-			err = errors.New("Wrong media type - Use one of: movie|tv|game|console|software|xxx" +
-				" - or leave empty to search media infos of all types.")
+			err = types.NewError("client", "invalid_argument", "extInfoType", "")
 		}
 		if err == nil {
 			client := getClient()
@@ -117,15 +112,12 @@ func SearchExtInfos(query, extInfoType string, limit int) (types.ExtInfoSearchRe
 			response, err = client.Get(apiURL + "search/ext_info.json" + query)
 			if err == nil {
 				defer response.Body.Close()
-				err = checkResponseStatusCode(response.StatusCode)
+				err = checkResponse(response)
 				if err == nil {
 					var bytes []byte
 					bytes, err = ioutil.ReadAll(response.Body)
 					if err == nil {
-						bytes, err = stripeJSON(bytes)
-						if err == nil {
-							err = json.Unmarshal(bytes, &searchResult)
-						}
+						err = json.Unmarshal(bytes, &searchResult)
 					}
 				}
 			}

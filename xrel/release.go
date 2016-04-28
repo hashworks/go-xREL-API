@@ -1,11 +1,13 @@
 package xrel
 
 import (
+	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"github.com/hashworks/go-xREL-API/xrel/types"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"time"
 )
@@ -25,17 +27,14 @@ func GetReleaseInfo(query string, isID bool) (types.Release, error) {
 	}
 	client := getClient()
 	response, err := client.Get(apiURL + "release/info.json" + query)
-	defer response.Body.Close()
 	if err == nil {
-		err = checkResponseStatusCode(response.StatusCode)
+		defer response.Body.Close()
+		err = checkResponse(response)
 		if err == nil {
 			var bytes []byte
 			bytes, err = ioutil.ReadAll(response.Body)
 			if err == nil {
-				bytes, err = stripeJSON(bytes)
-				if err == nil {
-					err = json.Unmarshal(bytes, &release)
-				}
+				err = json.Unmarshal(bytes, &release)
 			}
 		}
 	}
@@ -50,15 +49,12 @@ func getReleases(url string) (types.Releases, error) {
 	response, err := client.Get(url)
 	defer response.Body.Close()
 	if err == nil {
-		err = checkResponseStatusCode(response.StatusCode)
+		err = checkResponse(response)
 		if err == nil {
 			var bytes []byte
 			bytes, err = ioutil.ReadAll(response.Body)
 			if err == nil {
-				bytes, err = stripeJSON(bytes)
-				if err == nil {
-					err = json.Unmarshal(bytes, &releases)
-				}
+				err = json.Unmarshal(bytes, &releases)
 			}
 		}
 	}
@@ -111,30 +107,27 @@ func GetReleaseFilters() ([]types.Filter, error) {
 	var err error
 
 	currentUnix := time.Now().Unix()
-	if Config.LastFilterRequest == 0 || currentUnix-Config.LastFilterRequest > 86400 || len(Config.Filters) == 0 {
+	if types.Config.LastFilterRequest == 0 || currentUnix-types.Config.LastFilterRequest > 86400 || len(types.Config.Filters) == 0 {
 		client := getClient()
 		var response *http.Response
 		response, err = client.Get(apiURL + "release/filters.json")
 		defer response.Body.Close()
 		if err == nil {
-			err = checkResponseStatusCode(response.StatusCode)
+			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
 				bytes, err = ioutil.ReadAll(response.Body)
 				if err == nil {
-					bytes, err = stripeJSON(bytes)
+					err = json.Unmarshal(bytes, &types.Config.Filters)
 					if err == nil {
-						err = json.Unmarshal(bytes, &Config.Filters)
-						if err == nil {
-							Config.LastFilterRequest = currentUnix
-						}
+						types.Config.LastFilterRequest = currentUnix
 					}
 				}
 			}
 		}
 	}
 
-	return Config.Filters, err
+	return types.Config.Filters, err
 }
 
 /*
@@ -152,7 +145,7 @@ func BrowseReleaseCategory(categoryName, extInfoType string, perPage, page int) 
 	)
 
 	if categoryName == "" {
-		err = errors.New("Please specifiy a category name.")
+		err = types.NewError("client", "argument_missing", "category name", "")
 	} else {
 		query := "?category_name=" + categoryName
 		if perPage != 0 {
@@ -172,8 +165,7 @@ func BrowseReleaseCategory(categoryName, extInfoType string, perPage, page int) 
 		case "movie", "tv", "game", "console", "software", "xxx":
 			query += "&ext_info_type=" + extInfoType
 		default:
-			err = errors.New("Wrong extInfoType - Use one of: movie|tv|game|console|software|xxx" +
-				" - or leave empty to browse releases of all types.")
+			err = types.NewError("client", "invalid_argument", "extInfoType", "")
 		}
 		if err == nil {
 			releasesStruct, err = getReleases(apiURL + "release/browse_category.json" + query)
@@ -192,30 +184,27 @@ func GetReleaseCategories() ([]types.Category, error) {
 	var err error
 
 	currentUnix := time.Now().Unix()
-	if Config.LastCategoryRequest == 0 || currentUnix-Config.LastCategoryRequest > 86400 || len(Config.Categories) == 0 {
+	if types.Config.LastCategoryRequest == 0 || currentUnix-types.Config.LastCategoryRequest > 86400 || len(types.Config.Categories) == 0 {
 		client := getClient()
 		var response *http.Response
 		response, err = client.Get(apiURL + "release/categories.json")
 		defer response.Body.Close()
 		if err == nil {
-			err = checkResponseStatusCode(response.StatusCode)
+			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
 				bytes, err = ioutil.ReadAll(response.Body)
 				if err == nil {
-					bytes, err = stripeJSON(bytes)
+					err = json.Unmarshal(bytes, &types.Config.Categories)
 					if err == nil {
-						err = json.Unmarshal(bytes, &Config.Categories)
-						if err == nil {
-							Config.LastCategoryRequest = currentUnix
-						}
+						types.Config.LastCategoryRequest = currentUnix
 					}
 				}
 			}
 		}
 	}
 
-	return Config.Categories, err
+	return types.Config.Categories, err
 }
 
 /*
@@ -243,4 +232,69 @@ func GetReleaseByExtInfoID(id string, perPage, page int) (types.Releases, error)
 	}
 
 	return getReleases(apiURL + "release/ext_info.json" + query)
+}
+
+/**
+AddReleaseProofImage adds the base64 of a proof picture to a given API release id.
+More info on proof pictures can be found here: https://www.xrel.to/wiki/6305/Proofs.html
+
+Please read the rules before posting proofs: https://www.xrel.to/wiki/6308/Regeln-Proofs.html
+
+https://www.xrel.to/wiki/6444/api-release-addproof.html
+*/
+func AddReleaseProofImage(ids []string, imageBase64 string) (types.AddProofResult, error) {
+	var proofResult types.AddProofResult
+
+	client, err := getOAuth2Client()
+	if err == nil {
+		var parameters = url.Values{}
+		for i := range ids {
+			parameters.Add("id", ids[i])
+		}
+		parameters.Add("image", imageBase64)
+		var response *http.Response
+		response, err = client.PostForm(apiURL+"release/addproof.json", parameters)
+		defer response.Body.Close()
+		if err == nil {
+			err = checkResponse(response)
+			if err == nil {
+				var bytes []byte
+				bytes, err = ioutil.ReadAll(response.Body)
+				if err == nil {
+					err = json.Unmarshal(bytes, &proofResult)
+				}
+			}
+		}
+	}
+	return proofResult, err
+}
+
+/**
+AddReleaseProofImage adds a proof picture to a given API release id by filepath.
+More info on proof pictures can be found here: https://www.xrel.to/wiki/6305/Proofs.html
+
+Please read the rules before posting proofs: https://www.xrel.to/wiki/6308/Regeln-Proofs.html
+
+https://www.xrel.to/wiki/6444/api-release-addproof.html
+*/
+func AddReleaseProofImageByPath(ids []string, fp string) (types.AddProofResult, error) {
+	var proofResult types.AddProofResult
+
+	if len(ids) == 0 {
+		return proofResult, types.NewError("client", "argument_missing", "ids", "")
+	}
+	if fp == "" {
+		return proofResult, types.NewError("client", "argument_missing", "fp", "")
+	}
+	if _, err := os.Stat(fp); os.IsNotExist(err) {
+		return proofResult, types.NewError("client", "file_not_found", fp, "")
+	}
+
+	bytes, err := ioutil.ReadFile(fp)
+	if err != nil {
+		return proofResult, err
+	}
+
+	imageBase64 := base64.StdEncoding.EncodeToString(bytes)
+	return AddReleaseProofImage(ids, imageBase64)
 }

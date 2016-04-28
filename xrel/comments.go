@@ -2,7 +2,6 @@ package xrel
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/hashworks/go-xREL-API/xrel/types"
 	"io/ioutil"
 	"net/http"
@@ -47,15 +46,12 @@ func GetComments(id string, isP2P bool, perPage int, page int) (types.Comments, 
 	response, err := client.Get(apiURL + "comments/get.json" + query)
 	defer response.Body.Close()
 	if err == nil {
-		err = checkResponseStatusCode(response.StatusCode)
+		err = checkResponse(response)
 		if err == nil {
 			var bytes []byte
 			bytes, err = ioutil.ReadAll(response.Body)
 			if err == nil {
-				bytes, err = stripeJSON(bytes)
-				if err == nil {
-					err = json.Unmarshal(bytes, &comments)
-				}
+				err = json.Unmarshal(bytes, &comments)
 			}
 		}
 	}
@@ -65,6 +61,7 @@ func GetComments(id string, isP2P bool, perPage int, page int) (types.Comments, 
 
 /*
 AddComment adds a comment to a given API release id or API P2P release id.
+Requires OAuth2 authentication.
 
 	id					API release id or API P2P release id.
 	isP2P				If the provided id is a P2P release id.
@@ -83,15 +80,15 @@ func AddComment(id string, isP2P bool, text string, videoRating, audioRating int
 	)
 
 	if id == "" {
-		err = errors.New("Please provide a release id or a P2P release id.")
+		err = types.NewError("client", "argument_missing", "id", "")
 	} else if (videoRating > 0 && audioRating < 1) || (videoRating < 1 && audioRating > 0) ||
 		videoRating > 10 || audioRating > 10 {
-		err = errors.New("You must provide both ratings (video & audio) between 1 and 10.")
+		err = types.NewError("client", "invalid_argument", "video or audio rating`", "")
 	} else if videoRating < 1 && text == "" {
-		err = errors.New("Please provide either text and/or a rating.")
+		err = types.NewError("client", "argument_missing", "text or rating", "")
 	} else {
 		var client *http.Client
-		client, err = getOAuthClient()
+		client, err = getOAuth2Client()
 		if err == nil {
 			var parameters = url.Values{}
 			parameters.Add("id", id)
@@ -111,15 +108,12 @@ func AddComment(id string, isP2P bool, text string, videoRating, audioRating int
 			response, err = client.PostForm(apiURL+"comments/add.json", parameters)
 			defer response.Body.Close()
 			if err == nil {
-				err = checkResponseStatusCode(response.StatusCode)
+				err = checkResponse(response)
 				if err == nil {
 					var bytes []byte
 					bytes, err = ioutil.ReadAll(response.Body)
 					if err == nil {
-						bytes, err = stripeJSON(bytes)
-						if err == nil {
-							err = json.Unmarshal(bytes, &comment)
-						}
+						err = json.Unmarshal(bytes, &comment)
 					}
 				}
 			}

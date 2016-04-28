@@ -2,7 +2,6 @@ package xrel
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/hashworks/go-xREL-API/xrel/types"
 	"io/ioutil"
 	"net/http"
@@ -23,7 +22,7 @@ func GetP2PReleaseInfo(query string, isID bool) (types.P2PRelease, error) {
 	)
 
 	if query == "" {
-		err = errors.New("Please provide a dirname or an id as query.")
+		err = types.NewError("client", "argument_missing", "query", "")
 	} else {
 		if isID {
 			query = "?id=" + query
@@ -35,15 +34,12 @@ func GetP2PReleaseInfo(query string, isID bool) (types.P2PRelease, error) {
 		response, err = client.Get(apiURL + "p2p/rls_info.json" + query)
 		defer response.Body.Close()
 		if err == nil {
-			err = checkResponseStatusCode(response.StatusCode)
+			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
 				bytes, err = ioutil.ReadAll(response.Body)
 				if err == nil {
-					bytes, err = stripeJSON(bytes)
-					if err == nil {
-						err = json.Unmarshal(bytes, &p2pReleaseStruct)
-					}
+					err = json.Unmarshal(bytes, &p2pReleaseStruct)
 				}
 			}
 		}
@@ -96,15 +92,12 @@ func GetP2PReleases(perPage, page int, categoryID, groupID, extInfoID string) (t
 	response, err := client.PostForm(apiURL+"p2p/releases.json", parameters)
 	defer response.Body.Close()
 	if err == nil {
-		err = checkResponseStatusCode(response.StatusCode)
+		err = checkResponse(response)
 		if err == nil {
 			var bytes []byte
 			bytes, err = ioutil.ReadAll(response.Body)
 			if err == nil {
-				bytes, err = stripeJSON(bytes)
-				if err == nil {
-					err = json.Unmarshal(bytes, &p2pReleasesStruct)
-				}
+				err = json.Unmarshal(bytes, &p2pReleasesStruct)
 			}
 		}
 	}
@@ -122,28 +115,25 @@ func GetP2PCategories() ([]types.P2PCategory, error) {
 
 	// According to xREL we should cache the results for 24h
 	currentUnix := time.Now().Unix()
-	if Config.LastP2PCategoryRequest == 0 || currentUnix-Config.LastP2PCategoryRequest > 86400 || len(Config.P2PCategories) == 0 {
+	if types.Config.LastP2PCategoryRequest == 0 || currentUnix-types.Config.LastP2PCategoryRequest > 86400 || len(types.Config.P2PCategories) == 0 {
 		client := getClient()
 		var response *http.Response
 		response, err = client.Get(apiURL + "p2p/categories.json")
 		defer response.Body.Close()
 		if err == nil {
-			err = checkResponseStatusCode(response.StatusCode)
+			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
 				bytes, err = ioutil.ReadAll(response.Body)
 				if err == nil {
-					bytes, err = stripeJSON(bytes)
+					err = json.Unmarshal(bytes, &types.Config.P2PCategories)
 					if err == nil {
-						err = json.Unmarshal(bytes, &Config.P2PCategories)
-						if err == nil {
-							Config.LastP2PCategoryRequest = currentUnix
-						}
+						types.Config.LastP2PCategoryRequest = currentUnix
 					}
 				}
 			}
 		}
 	}
 
-	return Config.P2PCategories, err
+	return types.Config.P2PCategories, err
 }
