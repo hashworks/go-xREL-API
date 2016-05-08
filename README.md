@@ -30,13 +30,13 @@ Here is an example how to use the OAuth2 authentication:
 ```go
 xrel.ConfigureOAuth2("OAUTH2_CLIENT_KEY", "OAUTH2_CLIENT_SECRET", "", []string{"viewnfo", "addproof"})
 
-fmt.Println("(1) Go to: " + xrel.GetOAuth2RequestURL())
+fmt.Println("(1) Go to: " + xrel.GetOAuth2AuthURL(""))
 fmt.Println("(2) Grant access, you should get back a verification code.")
 fmt.Print("(3) Enter that verification code here: ")
 verificationCode := ""
 fmt.Scanln(&verificationCode)
 
-err := xrel.InitiateOAuth2CodeExchange(verificationCode)
+err := xrel.PerformOAuth2UserAuthentication(verificationCode)
 ok(err)
 
 ```
