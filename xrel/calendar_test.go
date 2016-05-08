@@ -3,6 +3,7 @@ package xrel
 import "testing"
 
 func TestGetUpcomingTitles(t *testing.T) {
+	t.Parallel()
 	upcomingTitles, err := GetUpcomingTitles("us")
 	testRateLimit(t, err)
 	if err != nil {

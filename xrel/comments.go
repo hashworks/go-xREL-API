@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -21,13 +22,14 @@ http://www.xrel.to/wiki/6313/api-comments-get.html
 */
 func GetComments(id string, isP2P bool, perPage int, page int) (types.Comments, error) {
 	var comments types.Comments
-	parameters := make(map[string]string)
 
-	parameters["id"] = id
+	form := url.Values{}
+
+	form.Add("id", id)
 	if isP2P {
-		parameters["type"] = "p2p_rls"
+		form.Add("type", "p2p_rls")
 	} else {
-		parameters["type"] = "release"
+		form.Add("type", "release")
 	}
 	if perPage != 0 {
 		if perPage < 5 {
@@ -36,22 +38,25 @@ func GetComments(id string, isP2P bool, perPage int, page int) (types.Comments, 
 		if perPage > 100 {
 			perPage = 100
 		}
-		parameters["per_page"] = strconv.Itoa(perPage)
+		form.Add("per_page", strconv.Itoa(perPage))
 	}
 	if page > 0 {
-		parameters["page"] = strconv.Itoa(page)
+		form.Add("page", strconv.Itoa(page))
 	}
-	query := generateGetParametersString(parameters)
-	client := getClient()
-	response, err := client.Get(apiURL + "comments/get.json" + query)
-	defer response.Body.Close()
+	req, err := getRequest("GET", apiURL+"comments/get.json?"+form.Encode(), nil)
 	if err == nil {
-		err = checkResponse(response)
+		var response *http.Response
+		client := http.DefaultClient
+		response, err = client.Do(req)
 		if err == nil {
-			var bytes []byte
-			bytes, err = ioutil.ReadAll(response.Body)
+			defer response.Body.Close()
+			err = checkResponse(response)
 			if err == nil {
-				err = json.Unmarshal(bytes, &comments)
+				var bytes []byte
+				bytes, err = ioutil.ReadAll(response.Body)
+				if err == nil {
+					err = json.Unmarshal(bytes, &comments)
+				}
 			}
 		}
 	}
@@ -61,12 +66,12 @@ func GetComments(id string, isP2P bool, perPage int, page int) (types.Comments, 
 
 /*
 AddComment adds a comment to a given API release id or API P2P release id.
-Requires OAuth2 authentication.
+Requires user OAuth2 authentication.
 
-	id					API release id or API P2P release id.
-	isP2P				If the provided id is a P2P release id.
+	id			API release id or API P2P release id.
+	isP2P			If the provided id is a P2P release id.
 	text		:= ""	The comment. You may use BBCode to format the text.
-						Can be empty if both video_rating and audio_rating are set.
+				Can be empty if both video_rating and audio_rating are set.
 	videoRating	:= 0
 	audioRating	:= 0	Video and audio rating between 1 (bad) to 10 (good). 0 means no rating.
 						You must always rate both or none. You may only vote once, and may not change your vote.
@@ -87,27 +92,28 @@ func AddComment(id string, isP2P bool, text string, videoRating, audioRating int
 	} else if videoRating < 1 && text == "" {
 		err = types.NewError("client", "argument_missing", "text or rating", "")
 	} else {
-		var client *http.Client
-		client, err = getOAuth2Client()
+		form := url.Values{}
+		form.Add("id", id)
+		if isP2P {
+			form.Add("type", "p2p_rls")
+		} else {
+			form.Add("type", "release")
+		}
+		if text != "" {
+			form.Add("text", text)
+		}
+		if videoRating > 0 {
+			form.Add("video_rating", strconv.Itoa(videoRating))
+			form.Add("audio_rating", strconv.Itoa(audioRating))
+		}
+		var request *http.Request
+		request, err = getOAuth2Request("POST", apiURL+"comments/add.json", strings.NewReader(form.Encode()))
 		if err == nil {
-			var parameters = url.Values{}
-			parameters.Add("id", id)
-			if isP2P {
-				parameters.Add("type", "p2p_rls")
-			} else {
-				parameters.Add("type", "release")
-			}
-			if text != "" {
-				parameters.Add("text", text)
-			}
-			if videoRating > 0 {
-				parameters.Add("video_rating", strconv.Itoa(videoRating))
-				parameters.Add("audio_rating", strconv.Itoa(audioRating))
-			}
+			client := http.DefaultClient
 			var response *http.Response
-			response, err = client.PostForm(apiURL+"comments/add.json", parameters)
-			defer response.Body.Close()
+			response, err = client.Do(request)
 			if err == nil {
+				defer response.Body.Close()
 				err = checkResponse(response)
 				if err == nil {
 					var bytes []byte

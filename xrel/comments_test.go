@@ -3,12 +3,9 @@ package xrel
 import "testing"
 
 func TestGetComments(t *testing.T) {
+	t.Parallel()
 	const page = 1
 	const perPage = 6
-
-	_, err := GetComments("notExistingId", false, perPage, page)
-	testRateLimit(t, err)
-	test404Request(t, err)
 
 	// >10 comments
 	// https://www.xrel.to/comments/1124872/London-Has-Fallen-German-AC3-Dubbed-720p-WebHD-h264-PsO.html

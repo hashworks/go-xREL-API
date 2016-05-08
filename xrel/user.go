@@ -9,19 +9,20 @@ import (
 
 /*
 GetUserInfo returns information about the currently active user.
-Requires OAuth authentication.
+Requires user OAuth authentication.
 
 https://www.xrel.to/wiki/6441/api-user-info.html
 */
 func GetUserInfo() (types.User, error) {
 	var user types.User
 
-	client, err := getOAuth2Client()
+	request, err := getOAuth2Request("GET", apiURL+"user/info.json", nil)
 	if err == nil {
+		client := http.DefaultClient
 		var response *http.Response
-		response, err = client.Get(apiURL + "user/info.json")
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
+			defer response.Body.Close()
 			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte

@@ -1,14 +1,12 @@
 package types
 
-import "golang.org/x/oauth2"
-
 /*
 Config contains the OAuth2 Token and cached results. Save this somewhere and restore it on every run.
 
 The rate limit information gets set on any request.
 */
 var Config = struct {
-	OAuth2Token *oauth2.Token
+	OAuth2Token OAuth2Token
 
 	// 24h caching http://www.xrel.to/wiki/6318/api-release-categories.html
 	LastCategoryRequest int64

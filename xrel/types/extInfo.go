@@ -22,7 +22,7 @@ type ExtendedExtInfo struct {
 	CoverURL     string               `json:"cover_url"`
 	URIs         []string             `json:"uris"`
 	Rating       float32              `json:"rating"`
-	OwnRating    string               `json:"own_rating"`
+	OwnRating    int                  `json:"own_rating"`
 	NumRatings   int                  `json:"num_ratings"`
 	ReleaseDates []ExtInfoReleaseDate `json:"release_dates"`
 	Externals    []ExtInfoExternal    `json:"externals"`

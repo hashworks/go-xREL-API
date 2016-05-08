@@ -18,6 +18,7 @@ package xrel
 import (
 	"encoding/json"
 	"github.com/hashworks/go-xREL-API/xrel/types"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -57,7 +58,6 @@ func checkResponse(response *http.Response) error {
 		}
 		extra = string(bytes)
 	}
-
 	if response.StatusCode == 404 {
 		return types.NewError("client", "function_not_found", "", "")
 	}
@@ -65,29 +65,21 @@ func checkResponse(response *http.Response) error {
 	return types.NewError("client", "parsing_failed", err.Error()+"\n"+extra, "")
 }
 
-func generateGetParametersString(parameters map[string]string) string {
-	var query string
-
-	for k, v := range parameters {
-		if query == "" {
-			query = "?"
-		} else {
-			query += "&"
-		}
-		query += k + "=" + v
-	}
-
-	return query
-}
-
 /*
-getClient returns an OAuth2 client if authenticated and a normal client otherwise.
+getRequest returns an OAuth2 request if authenticated and a normal request otherwise.
+
+Reader example:
+	form := url.Values{}
+	[...]
+	strings.NewReader(form.Encode())
+Or:
+	strings.NewReader("z=post&both=y&prio=2&empty=")
 */
-func getClient() *http.Client {
-	var client *http.Client
-	client, err := getOAuth2Client()
+func getRequest(method, url string, body io.Reader) (*http.Request, error) {
+	req, err := getOAuth2Request(method, url, body)
 	if err != nil {
-		client = http.DefaultClient
+		req, err = http.NewRequest(method, url, body)
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
-	return client
+	return req, err
 }

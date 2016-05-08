@@ -1,57 +1,142 @@
 package xrel
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/hashworks/go-xREL-API/xrel/types"
-	"golang.org/x/oauth2"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
+	"time"
 )
 
-var oauth2Config = &oauth2.Config{
-	Endpoint: oauth2.Endpoint{
-		AuthURL:  apiURL + "oauth2/auth",
-		TokenURL: apiURL + "oauth2/token",
-	},
-}
+var (
+	oAuth2ClientKey    string
+	oAuth2ClientSecret string
+	oAuth2RedirectURL  string
+	oAuth2Scopes       []string
+)
 
 /*
-ConfigureOAuth2 sets the OAuth consumer key and secret you received from xREL.
+ConfigureOAuth2 will set needed oAuth2 variables.
 If you set no redirectURL xREL will display the code to the user.
-Get them here: http://www.xrel.to/api-apps.html
+Get your client key & secret here: http://www.xrel.to/api-apps.html
 */
-func ConfigureOAuth2(clientKey, clientSecret string, redirectURL string, scopes []string) {
-	oauth2Config.ClientID = clientKey
-	oauth2Config.ClientSecret = clientSecret
-	oauth2Config.Scopes = scopes
+func ConfigureOAuth2(clientKey, clientSecret, redirectURL string, scopes []string) {
 	if redirectURL == "" {
-		oauth2Config.RedirectURL = "urn:ietf:wg:oauth:2.0:oob"
+		redirectURL = "urn:ietf:wg:oauth:2.0:oob"
 	}
+	oAuth2ClientKey = clientKey
+	oAuth2ClientSecret = clientSecret
+	oAuth2RedirectURL = redirectURL
+	oAuth2Scopes = scopes
 }
 
 /*
-GetOAuth2RequestURL returns an URL where the user can login and get a verification code from.
+GetOAuth2AuthURL returns an URL where the user can login and get a verification code from.
+State can be any string. You may set this value to any value, and it will be returned after the authentication. It might also be useful to prevent CSRF attacks.
+Use this after ConfigureOAuth2.
 */
-func GetOAuth2RequestURL() string {
-	return oauth2Config.AuthCodeURL("state", oauth2.AccessTypeOnline)
+func GetOAuth2AuthURL(state string) string {
+	return apiURL + "oauth2/auth?response_type=code&client_id=" + url.QueryEscape(oAuth2ClientKey) + "&redirect_uri=" + url.QueryEscape(oAuth2RedirectURL) + "&state=" + url.QueryEscape(state) + "&scope=" + url.QueryEscape(strings.Join(oAuth2Scopes, " "))
 }
 
 /*
-InitiateOAuth2CodeExchange initiates the verification code exchange. On success, xREL will return a token we are gonna save in the Config variable.
+PerformOAuth2UserAuthentication will perform an user authentication with the code you received from GetOAuth2URL.
 */
-func InitiateOAuth2CodeExchange(code string) error {
-	token, err := oauth2Config.Exchange(oauth2.NoContext, code)
+func PerformOAuth2UserAuthentication(code string) error {
+	client := http.DefaultClient
+	values := url.Values{}
+	values.Add("grant_type", "authorization_code")
+	values.Add("client_id", oAuth2ClientKey)
+	values.Add("client_secret", oAuth2ClientSecret)
+	values.Add("code", code)
+	values.Add("redirect_uri", oAuth2RedirectURL)
+	values.Add("scope", strings.Join(oAuth2Scopes, ""))
+	response, err := client.PostForm(apiURL+"oauth2/token", values)
 	if err == nil {
-		types.Config.OAuth2Token = token
+		err = handleOAuth2TokenResponse(response)
 	}
 	return err
 }
 
-func getOAuth2Client() (*http.Client, error) {
-	var client *http.Client
+/*
+PerformOAuth2UserAuthentication will perform an application authentication.
+Use this after ConfigureOAuth2.
+*/
+func PerformOAuth2ApplicationAuthentication() error {
+	client := http.DefaultClient
+	values := url.Values{}
+	values.Add("grant_type", "client_credentials")
+	values.Add("client_id", oAuth2ClientKey)
+	values.Add("client_secret", oAuth2ClientSecret)
+	values.Add("redirect_uri", oAuth2RedirectURL)
+	values.Add("scope", strings.Join(oAuth2Scopes, ""))
+	response, err := client.PostForm(apiURL+"oauth2/token", values)
+	if err == nil {
+		err = handleOAuth2TokenResponse(response)
+	}
+	return err
+}
+
+func refreshAccessToken() error {
+	client := http.DefaultClient
+	values := url.Values{}
+	values.Add("grant_type", "refresh_token")
+	values.Add("client_id", oAuth2ClientKey)
+	values.Add("client_secret", oAuth2ClientSecret)
+	values.Add("refresh_token", types.Config.OAuth2Token.RefreshToken)
+	response, err := client.PostForm(apiURL+"oauth2/token", values)
+	if err == nil {
+		err = handleOAuth2TokenResponse(response)
+	}
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return err
+}
+
+func handleOAuth2TokenResponse(response *http.Response) error {
+	unixNow := time.Now().Unix()
+	defer response.Body.Close()
+	err := checkResponse(response)
+	if err == nil {
+		var bytes []byte
+		bytes, err = ioutil.ReadAll(response.Body)
+		if err == nil {
+			err = json.Unmarshal(bytes, &types.Config.OAuth2Token)
+			if err == nil {
+				types.Config.OAuth2Token.Expires = time.Unix(unixNow+types.Config.OAuth2Token.ExpiresIn, 0)
+			}
+		}
+	}
+	return err
+}
+
+/*
+Reader example:
+	form := url.Values{}
+	[...]
+	strings.NewReader(form.Encode())
+Or:
+	strings.NewReader("z=post&both=y&prio=2&empty=")
+*/
+func getOAuth2Request(method, url string, body io.Reader) (*http.Request, error) {
+	var req *http.Request
 	var err error
-	if oauth2Config.ClientID != "" && oauth2Config.ClientSecret != "" && types.Config.OAuth2Token != nil {
-		client = oauth2Config.Client(oauth2.NoContext, types.Config.OAuth2Token)
+	if types.Config.OAuth2Token.AccessToken != "" {
+		if time.Now().After(types.Config.OAuth2Token.Expires) {
+			err = refreshAccessToken()
+		}
+		if err == nil {
+			req, err = http.NewRequest(method, url, body)
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("Authorization", types.Config.OAuth2Token.TokenType+" "+types.Config.OAuth2Token.AccessToken)
+		}
 	} else {
 		err = types.NewError("client", "not_authenticated", "", "")
 	}
-	return client, err
+	return req, err
 }

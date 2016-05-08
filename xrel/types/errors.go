@@ -23,14 +23,14 @@ type Error struct {
 	Type        string `json:"error_type"`
 	Code        string `json:"error"`
 	Extra       string
-	description string `json:"error_description"`
+	Description string `json:"error_description"`
 }
 
 /*
 Error returns the error description.
 */
 func (e *Error) Error() string {
-	return e.description
+	return e.Description
 }
 
 /*
@@ -83,6 +83,6 @@ func NewError(errorType, errorCode, errorExtra, errorDesc string) *Error {
 			errorDesc = "Unknown error code '" + err.Code + "'. Please report to: https://github.com/hashworks/go-xREL-API/issues"
 		}
 	}
-	err.description = errorDesc
+	err.Description = errorDesc
 	return err
 }

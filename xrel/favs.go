@@ -6,27 +6,25 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 /*
 GetFavsLists returns a list of all the current user's favorite lists.
-Requires OAuth2 authentication.
+Requires user OAuth2 authentication.
 
 http://www.xrel.to/wiki/1754/api-favs-lists.html
 */
 func GetFavsLists() ([]types.FavList, error) {
-	var (
-		favLists []types.FavList
-		err      error
-	)
+	var favLists []types.FavList
 
-	var client *http.Client
-	client, err = getOAuth2Client()
+	client := http.DefaultClient
+	request, err := getOAuth2Request("POST", apiURL+"favs/lists.json", nil)
 	if err == nil {
 		var response *http.Response
-		response, err = client.Get(apiURL + "favs/lists.json")
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
+			defer response.Body.Close()
 			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
@@ -43,35 +41,32 @@ func GetFavsLists() ([]types.FavList, error) {
 
 /*
 GetFavsListEntries returns entries of a favorite list.
-Requires OAuth2 authentication.
+Requires user OAuth2 authentication.
 
-	favsListID				The favorite list ID, as obtained through GetFavsLists().
+	favsListID			The favorite list ID, as obtained through GetFavsLists().
 	getReleases	:= false	If true, an inline list of unread(!) releases will be returned with each ext_info entry.
 
 http://www.xrel.to/wiki/1823/api-favs-list-entries.html
 */
 func GetFavsListEntries(favsListID string, getReleases bool) ([]types.ExtendedExtInfo, error) {
-	var (
-		extendedExtInfos []types.ExtendedExtInfo
-		err              error
-	)
+	var extendedExtInfos []types.ExtendedExtInfo
 
 	if favsListID == "" {
 		return extendedExtInfos, types.NewError("client", "argument_missing", "favsListId", "")
 	}
 
-	var client *http.Client
-	client, err = getOAuth2Client()
+	form := url.Values{}
+	form.Add("id", favsListID)
+	if getReleases {
+		form.Add("get_releases", "true")
+	}
+	request, err := getOAuth2Request("POST", apiURL+"favs/list_entries.json", strings.NewReader(form.Encode()))
 	if err == nil {
-		parameters := url.Values{}
-		parameters.Add("id", favsListID)
-		if getReleases {
-			parameters.Add("get_releases", "true")
-		}
+		client := http.DefaultClient
 		var response *http.Response
-		response, err = client.PostForm(apiURL+"favs/list_entries.json", parameters)
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
+			defer response.Body.Close()
 			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
@@ -88,7 +83,7 @@ func GetFavsListEntries(favsListID string, getReleases bool) ([]types.ExtendedEx
 
 /*
 AddFavsListEntry adds an ExtInfo to a favorite list.
-Requires OAuth2 authentication.
+Requires user OAuth2 authentication.
 
 	favsListID	The favorite list ID, as obtained through GetFavsLists().
 	extInfoID	The Ext Info ID, as obtained through other API calls.
@@ -108,16 +103,16 @@ func AddFavsListEntry(favsListID, extInfoID string) (types.FavListEntryModificat
 		return favListAddEntryResult, types.NewError("client", "argument_missing", "extInfoId", "")
 	}
 
-	var client *http.Client
-	client, err = getOAuth2Client()
+	form := url.Values{}
+	form.Add("id", favsListID)
+	form.Add("ext_info_id", extInfoID)
+	request, err := getOAuth2Request("POST", apiURL+"favs/list_addentry.json", strings.NewReader(form.Encode()))
 	if err == nil {
-		parameters := url.Values{}
-		parameters.Add("id", favsListID)
-		parameters.Add("ext_info_id", extInfoID)
+		client := http.DefaultClient
 		var response *http.Response
-		response, err = client.PostForm(apiURL+"favs/list_addentry.json", parameters)
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
+			defer response.Body.Close()
 			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
@@ -134,7 +129,7 @@ func AddFavsListEntry(favsListID, extInfoID string) (types.FavListEntryModificat
 
 /*
 RemoveFavsListEntry removes an ExtInfo from a favorite list.
-Requires OAuth2 authentication.
+Requires user OAuth2 authentication.
 
 	favsListID	The favorite list ID, as obtained through GetFavsLists().
 	extInfoID	The ExtInfo ID, as obtained through other API calls.
@@ -154,16 +149,16 @@ func RemoveFavsListEntry(favsListID, extInfoID string) (types.FavListEntryModifi
 		return favListRemoveEntryResult, types.NewError("client", "argument_missing", "extInfoId", "")
 	}
 
-	var client *http.Client
-	client, err = getOAuth2Client()
+	form := url.Values{}
+	form.Add("id", favsListID)
+	form.Add("ext_info_id", extInfoID)
+	request, err := getOAuth2Request("POST", apiURL+"favs/list_delentry.json", strings.NewReader(form.Encode()))
 	if err == nil {
-		parameters := url.Values{}
-		parameters.Add("id", favsListID)
-		parameters.Add("ext_info_id", extInfoID)
+		client := http.DefaultClient
 		var response *http.Response
-		response, err = client.PostForm(apiURL+"favs/list_delentry.json", parameters)
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
+			defer response.Body.Close()
 			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte
@@ -180,7 +175,7 @@ func RemoveFavsListEntry(favsListID, extInfoID string) (types.FavListEntryModifi
 
 /*
 MarkFavsListEntryAsRead marks a release on a favorite list as read.
-Requires OAuth2 authentication.
+Requires user OAuth2 authentication.
 
 	favsListID	The favorite list ID, as obtained through GetFavsLists().
 	releaseID	The API release ID, as obtained through other API calls.
@@ -201,21 +196,21 @@ func MarkFavsListEntryAsRead(favsListID, releaseID string, isP2P bool) (types.Sh
 		return shortFavList, types.NewError("client", "argument_missing", "releaseId", "")
 	}
 
-	var client *http.Client
-	client, err = getOAuth2Client()
+	form := url.Values{}
+	form.Add("id", favsListID)
+	form.Add("release_id", releaseID)
+	if isP2P {
+		form.Add("type", "p2p_rls")
+	} else {
+		form.Add("type", "release")
+	}
+	request, err := getOAuth2Request("POST", apiURL+"favs/list_markread.json", strings.NewReader(form.Encode()))
 	if err == nil {
-		parameters := url.Values{}
-		parameters.Add("id", favsListID)
-		parameters.Add("release_id", releaseID)
-		if isP2P {
-			parameters.Add("type", "p2p_rls")
-		} else {
-			parameters.Add("type", "release")
-		}
+		client := http.DefaultClient
 		var response *http.Response
-		response, err = client.PostForm(apiURL+"favs/list_markread.json", parameters)
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
+			defer response.Body.Close()
 			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte

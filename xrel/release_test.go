@@ -1,6 +1,8 @@
 package xrel
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestGetReleaseInfo(t *testing.T) {
 	_, err := GetReleaseInfo("notExistingID", true)
@@ -105,7 +107,7 @@ func TestBrowseReleaseCategory(t *testing.T) {
 			t.Errorf("Received unexpected per page count of %d.", rl.Pagination.PerPage)
 		}
 		if len(rl.List) != 6 {
-			t.Error("Received unexpected release count of %d.", len(rl.List))
+			t.Errorf("Received unexpected release count of %d.", len(rl.List))
 		} else {
 			for i := range rl.List {
 				if rl.List[i].ExtInfo.Type != "movie" {
@@ -149,10 +151,6 @@ func TestGetReleaseCategories(t *testing.T) {
 }
 
 func TestGetReleaseByExtInfoID(t *testing.T) {
-	_, err := GetReleaseByExtInfoID("notExistingId", 0, 0)
-	testRateLimit(t, err)
-	test404Request(t, err)
-
 	const page = 1
 	const perPage = 6
 

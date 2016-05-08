@@ -13,8 +13,8 @@ import (
 SearchReleases searches for Scene and P2P releases. Please note that additional search rate limiting applies.
 See http://www.xrel.to/wiki/2727/api-rate-limiting.html
 
-	query						Search keyword.	(required)
-	includeScene	:= false	If true, Scene releases will be included in the search results.
+	query					Search keyword.	(required)
+	includeScene		:= false	If true, Scene releases will be included in the search results.
 	includeP2P		:= false	If true, P2P releases will be included in the search results.
 	limit			:= 25		Number of returned search results. Maximum and default 25.
 
@@ -29,17 +29,17 @@ func SearchReleases(query string, includeScene, includeP2P bool, limit int) (typ
 	if query == "" {
 		err = types.NewError("client", "argument_missing", "query", "")
 	} else {
-		parameters := make(map[string]string)
-		parameters["q"] = url.QueryEscape(query)
+		form := url.Values{}
+		form.Add("q", url.QueryEscape(query))
 		if includeScene {
-			parameters["scene"] = "1"
+			form.Add("scene", "1")
 		} else {
-			parameters["scene"] = "0"
+			form.Add("scene", "0")
 		}
 		if includeP2P {
-			parameters["p2p"] = "1"
+			form.Add("p2p", "1")
 		} else {
-			parameters["p2p"] = "0"
+			form.Add("p2p", "0")
 		}
 		if limit != 0 {
 			if limit < 1 {
@@ -48,20 +48,23 @@ func SearchReleases(query string, includeScene, includeP2P bool, limit int) (typ
 			if limit > 25 {
 				limit = 25
 			}
-			parameters["limit"] = strconv.Itoa(limit)
+			form.Add("limit", strconv.Itoa(limit))
 		}
-		query = generateGetParametersString(parameters)
-		client := getClient()
-		var response *http.Response
-		response, err = client.Get(apiURL + "search/releases.json" + query)
+		var req *http.Request
+		req, err = getRequest("GET", apiURL+"search/releases.json?"+form.Encode(), nil)
 		if err == nil {
-			defer response.Body.Close()
-			err = checkResponse(response)
+			var response *http.Response
+			client := http.DefaultClient
+			response, err = client.Do(req)
 			if err == nil {
-				var bytes []byte
-				bytes, err = ioutil.ReadAll(response.Body)
+				defer response.Body.Close()
+				err = checkResponse(response)
 				if err == nil {
-					err = json.Unmarshal(bytes, &searchResult)
+					var bytes []byte
+					bytes, err = ioutil.ReadAll(response.Body)
+					if err == nil {
+						err = json.Unmarshal(bytes, &searchResult)
+					}
 				}
 			}
 		}
@@ -74,7 +77,7 @@ func SearchReleases(query string, includeScene, includeP2P bool, limit int) (typ
 SearchExtInfos searches for ExtInfos. Please note that additional search rate limiting applies.
 See http://www.xrel.to/wiki/2727/api-rate-limiting.html
 
-	query				Search keyword.
+	query			Search keyword.
 	extInfoType	:= ""	One of: movie|tv|game|console|software|xxx - or leave empty to search Ext Infos of all types.
 	limit		:= 25	Number of returned search results. Maximum and default 25.
 
@@ -89,7 +92,8 @@ func SearchExtInfos(query, extInfoType string, limit int) (types.ExtInfoSearchRe
 	if query == "" {
 		err = types.NewError("client", "argument_missing", "query", "")
 	} else {
-		query = "?q=" + url.QueryEscape(query)
+		form := url.Values{}
+		form.Add("q", query)
 		if limit != 0 {
 			if limit < 1 {
 				limit = 1
@@ -97,27 +101,31 @@ func SearchExtInfos(query, extInfoType string, limit int) (types.ExtInfoSearchRe
 			if limit > 25 {
 				limit = 25
 			}
-			query += "&limit=" + strconv.Itoa(limit)
+			form.Add("limit", strconv.Itoa(limit))
 		}
 		switch extInfoType {
 		case "":
 		case "movie", "tv", "game", "console", "software", "xxx":
-			query += "&type=" + extInfoType
+			form.Add("type", extInfoType)
 		default:
 			err = types.NewError("client", "invalid_argument", "extInfoType", "")
 		}
 		if err == nil {
-			client := getClient()
-			var response *http.Response
-			response, err = client.Get(apiURL + "search/ext_info.json" + query)
+			var req *http.Request
+			req, err = getRequest("GET", apiURL+"search/ext_info.json?"+form.Encode(), nil)
 			if err == nil {
-				defer response.Body.Close()
-				err = checkResponse(response)
+				var response *http.Response
+				client := http.DefaultClient
+				response, err = client.Do(req)
 				if err == nil {
-					var bytes []byte
-					bytes, err = ioutil.ReadAll(response.Body)
+					defer response.Body.Close()
+					err = checkResponse(response)
 					if err == nil {
-						err = json.Unmarshal(bytes, &searchResult)
+						var bytes []byte
+						bytes, err = ioutil.ReadAll(response.Body)
+						if err == nil {
+							err = json.Unmarshal(bytes, &searchResult)
+						}
 					}
 				}
 			}

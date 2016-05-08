@@ -3,9 +3,7 @@ package xrel
 import "testing"
 
 func TestGetExtInfo(t *testing.T) {
-	_, err := GetExtInfo("notExistingId")
-	testRateLimit(t, err)
-	test404Request(t, err)
+	t.Parallel()
 
 	// https://www.xrel.to/game/78663/L-A-Noire.html
 	const id = "f25c556d13347"
@@ -27,9 +25,7 @@ func TestGetExtInfo(t *testing.T) {
 }
 
 func TestGetExtInfoMedia(t *testing.T) {
-	_, err := GetExtInfoMedia("notExistingId")
-	testRateLimit(t, err)
-	test404Request(t, err)
+	t.Parallel()
 
 	// https://www.xrel.to/movie/132163/Straight-Outta-Compton.html
 	const id = "08f068b020443"

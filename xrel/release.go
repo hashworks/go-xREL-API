@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -25,16 +26,21 @@ func GetReleaseInfo(query string, isID bool) (types.Release, error) {
 	} else {
 		query = "?dirname=" + query
 	}
-	client := getClient()
-	response, err := client.Get(apiURL + "release/info.json" + query)
+
+	req, err := getRequest("GET", apiURL+"release/info.json"+query, nil)
 	if err == nil {
-		defer response.Body.Close()
-		err = checkResponse(response)
+		var response *http.Response
+		client := http.DefaultClient
+		response, err = client.Do(req)
 		if err == nil {
-			var bytes []byte
-			bytes, err = ioutil.ReadAll(response.Body)
+			defer response.Body.Close()
+			err = checkResponse(response)
 			if err == nil {
-				err = json.Unmarshal(bytes, &release)
+				var bytes []byte
+				bytes, err = ioutil.ReadAll(response.Body)
+				if err == nil {
+					err = json.Unmarshal(bytes, &release)
+				}
 			}
 		}
 	}
@@ -42,19 +48,23 @@ func GetReleaseInfo(query string, isID bool) (types.Release, error) {
 	return release, err
 }
 
-func getReleases(url string) (types.Releases, error) {
+func getReleases(url string, form url.Values) (types.Releases, error) {
 	var releases types.Releases
 
-	client := getClient()
-	response, err := client.Get(url)
-	defer response.Body.Close()
+	req, err := getRequest("GET", url+"?"+form.Encode(), nil)
 	if err == nil {
-		err = checkResponse(response)
+		var response *http.Response
+		client := http.DefaultClient
+		response, err = client.Do(req)
 		if err == nil {
-			var bytes []byte
-			bytes, err = ioutil.ReadAll(response.Body)
+			defer response.Body.Close()
+			err = checkResponse(response)
 			if err == nil {
-				err = json.Unmarshal(bytes, &releases)
+				var bytes []byte
+				bytes, err = ioutil.ReadAll(response.Body)
+				if err == nil {
+					err = json.Unmarshal(bytes, &releases)
+				}
 			}
 		}
 	}
@@ -73,7 +83,7 @@ GetLatestReleases returns the latest releases. Also allows to browse the archive
 http://www.xrel.to/wiki/2994/api-release-latest.html
 */
 func GetLatestReleases(perPage, page int, filter, archive string) (types.Releases, error) {
-	parameters := make(map[string]string)
+	form := url.Values{}
 
 	if perPage != 0 {
 		if perPage < 5 {
@@ -82,20 +92,19 @@ func GetLatestReleases(perPage, page int, filter, archive string) (types.Release
 		if perPage > 100 {
 			perPage = 100
 		}
-		parameters["per_page"] = strconv.Itoa(perPage)
+		form.Add("per_page", strconv.Itoa(perPage))
 	}
 	if page > 0 {
-		parameters["page"] = strconv.Itoa(page)
+		form.Add("page", strconv.Itoa(page))
 	}
 	if filter != "" {
-		parameters["filter"] = filter
+		form.Add("filter", filter)
 	}
 	if archive != "" {
-		parameters["archive"] = archive
+		form.Add("archive", archive)
 	}
-	query := generateGetParametersString(parameters)
 
-	return getReleases(apiURL + "release/latest.json" + query)
+	return getReleases(apiURL+"release/latest.json", form)
 }
 
 /*
@@ -108,19 +117,23 @@ func GetReleaseFilters() ([]types.Filter, error) {
 
 	currentUnix := time.Now().Unix()
 	if types.Config.LastFilterRequest == 0 || currentUnix-types.Config.LastFilterRequest > 86400 || len(types.Config.Filters) == 0 {
-		client := getClient()
-		var response *http.Response
-		response, err = client.Get(apiURL + "release/filters.json")
-		defer response.Body.Close()
+		var req *http.Request
+		req, err = getRequest("GET", apiURL+"release/filters.json", nil)
 		if err == nil {
-			err = checkResponse(response)
+			var response *http.Response
+			client := http.DefaultClient
+			response, err = client.Do(req)
 			if err == nil {
-				var bytes []byte
-				bytes, err = ioutil.ReadAll(response.Body)
+				defer response.Body.Close()
+				err = checkResponse(response)
 				if err == nil {
-					err = json.Unmarshal(bytes, &types.Config.Filters)
+					var bytes []byte
+					bytes, err = ioutil.ReadAll(response.Body)
 					if err == nil {
-						types.Config.LastFilterRequest = currentUnix
+						err = json.Unmarshal(bytes, &types.Config.Filters)
+						if err == nil {
+							types.Config.LastFilterRequest = currentUnix
+						}
 					}
 				}
 			}
@@ -147,7 +160,9 @@ func BrowseReleaseCategory(categoryName, extInfoType string, perPage, page int) 
 	if categoryName == "" {
 		err = types.NewError("client", "argument_missing", "category name", "")
 	} else {
-		query := "?category_name=" + categoryName
+		form := url.Values{}
+
+		form.Add("category_name", categoryName)
 		if perPage != 0 {
 			if perPage < 5 {
 				perPage = 5
@@ -155,20 +170,20 @@ func BrowseReleaseCategory(categoryName, extInfoType string, perPage, page int) 
 			if perPage > 100 {
 				perPage = 100
 			}
-			query += "&per_page=" + strconv.Itoa(perPage)
+			form.Add("per_page", strconv.Itoa(perPage))
 		}
 		if page > 0 {
-			query += "&page=" + strconv.Itoa(page)
+			form.Add("page", strconv.Itoa(page))
 		}
 		switch extInfoType {
 		case "":
 		case "movie", "tv", "game", "console", "software", "xxx":
-			query += "&ext_info_type=" + extInfoType
+			form.Add("ext_info_type", extInfoType)
 		default:
 			err = types.NewError("client", "invalid_argument", "extInfoType", "")
 		}
 		if err == nil {
-			releasesStruct, err = getReleases(apiURL + "release/browse_category.json" + query)
+			releasesStruct, err = getReleases(apiURL+"release/browse_category.json", form)
 		}
 	}
 
@@ -185,19 +200,23 @@ func GetReleaseCategories() ([]types.Category, error) {
 
 	currentUnix := time.Now().Unix()
 	if types.Config.LastCategoryRequest == 0 || currentUnix-types.Config.LastCategoryRequest > 86400 || len(types.Config.Categories) == 0 {
-		client := getClient()
-		var response *http.Response
-		response, err = client.Get(apiURL + "release/categories.json")
-		defer response.Body.Close()
+		var req *http.Request
+		req, err := getRequest("GET", apiURL+"release/categories.json", nil)
 		if err == nil {
-			err = checkResponse(response)
+			var response *http.Response
+			client := http.DefaultClient
+			response, err = client.Do(req)
 			if err == nil {
-				var bytes []byte
-				bytes, err = ioutil.ReadAll(response.Body)
+				defer response.Body.Close()
+				err = checkResponse(response)
 				if err == nil {
-					err = json.Unmarshal(bytes, &types.Config.Categories)
+					var bytes []byte
+					bytes, err = ioutil.ReadAll(response.Body)
 					if err == nil {
-						types.Config.LastCategoryRequest = currentUnix
+						err = json.Unmarshal(bytes, &types.Config.Categories)
+						if err == nil {
+							types.Config.LastCategoryRequest = currentUnix
+						}
 					}
 				}
 			}
@@ -217,7 +236,8 @@ GetReleaseByExtInfoID returns all releases associated with a given ExtInfo.
 http://www.xrel.to/wiki/2822/api-release-ext-info.html
 */
 func GetReleaseByExtInfoID(id string, perPage, page int) (types.Releases, error) {
-	query := "?id=" + id
+	form := url.Values{}
+	form.Add("id", id)
 	if perPage != 0 {
 		if perPage < 5 {
 			perPage = 5
@@ -225,13 +245,13 @@ func GetReleaseByExtInfoID(id string, perPage, page int) (types.Releases, error)
 		if perPage > 100 {
 			perPage = 100
 		}
-		query += "&per_page=" + strconv.Itoa(perPage)
+		form.Add("per_page", strconv.Itoa(perPage))
 	}
 	if page > 0 {
-		query += "&page=" + strconv.Itoa(page)
+		form.Add("page", strconv.Itoa(page))
 	}
 
-	return getReleases(apiURL + "release/ext_info.json" + query)
+	return getReleases(apiURL+"release/ext_info.json", form)
 }
 
 /*
@@ -245,17 +265,18 @@ https://www.xrel.to/wiki/6444/api-release-addproof.html
 func AddReleaseProofImage(ids []string, imageBase64 string) (types.AddProofResult, error) {
 	var proofResult types.AddProofResult
 
-	client, err := getOAuth2Client()
+	var form = url.Values{}
+	for i := range ids {
+		form.Add("id", ids[i])
+	}
+	form.Add("image", imageBase64)
+	request, err := getOAuth2Request("POST", apiURL+"release/addproof.json", strings.NewReader(form.Encode()))
 	if err == nil {
-		var parameters = url.Values{}
-		for i := range ids {
-			parameters.Add("id", ids[i])
-		}
-		parameters.Add("image", imageBase64)
+		client := http.DefaultClient
 		var response *http.Response
-		response, err = client.PostForm(apiURL+"release/addproof.json", parameters)
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
+			defer response.Body.Close()
 			err = checkResponse(response)
 			if err == nil {
 				var bytes []byte

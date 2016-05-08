@@ -3,16 +3,6 @@ package xrel
 import "testing"
 
 func TestGetP2PReleaseInfo(t *testing.T) {
-	_, err := GetP2PReleaseInfo("notExistingId", true)
-	testRateLimit(t, err)
-	test404Request(t, err)
-
-	// Scene release
-	// https://www.xrel.to/movie-nfo/60557/Keinohrhasen-German-AC3-DVDRip-XviD-CRUCiAL.html
-	_, err = GetP2PReleaseInfo("f638d1cfec8d", true)
-	testRateLimit(t, err)
-	test404Request(t, err)
-
 	// https://www.xrel.to/p2p/11238-Killer-Elite-2011-German-AC3D-DL-720p-HDTV-x264-TwixX/nfo.html
 	relByID, err := GetP2PReleaseInfo("6dbb52db2be6", true)
 	testRateLimit(t, err)
@@ -69,15 +59,6 @@ func TestGetP2PCategories(t *testing.T) {
 func TestGetP2PReleases(t *testing.T) {
 	const page = 1
 	const perPage = 6
-	//	_, err := GetP2PReleases(perPage, page, "", "", "notExistingId")
-	//	testRateLimit(t, err)
-	//	test404Request(t, err)
-	//	_, err = GetP2PReleases(perPage, page, "", "notExistingId", "")
-	//	testRateLimit(t, err)
-	//	test404Request(t, err)
-	//	_, err = GetP2PReleases(perPage, page, "notExistingId", "", "")
-	//	testRateLimit(t, err)
-	//	test404Request(t, err)
 
 	// Test category request
 	releases, err := GetP2PReleases(perPage, page, catID, "", "")

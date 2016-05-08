@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/hashworks/go-xREL-API/xrel/types"
 	"io/ioutil"
+	"net/http"
 )
 
 /*
@@ -20,15 +21,19 @@ func GetUpcomingTitles(country string) ([]types.UpcomingTitle, error) {
 		requestURL = requestURL + "?country=" + country
 	}
 
-	client := getClient()
-	response, err := client.Get(requestURL)
-	defer response.Body.Close()
+	req, err := getRequest("GET", requestURL, nil)
 	if err == nil {
-		err = checkResponse(response)
+		var response *http.Response
+		client := http.DefaultClient
+		response, err = client.Do(req)
 		if err == nil {
-			bytes, err := ioutil.ReadAll(response.Body)
+			defer response.Body.Close()
+			err = checkResponse(response)
 			if err == nil {
-				err = json.Unmarshal(bytes, &upcomingTitles)
+				bytes, err := ioutil.ReadAll(response.Body)
+				if err == nil {
+					err = json.Unmarshal(bytes, &upcomingTitles)
+				}
 			}
 		}
 	}

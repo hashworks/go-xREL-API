@@ -7,7 +7,10 @@ import (
 
 /*
 GetNFOByID returns PNG image data of a NFO file for a given release id.
-Requires OAuth2 authentication.
+Requires user or application OAuth2 authentication.
+
+	id		The release id as obtained trough over methods.
+	isP2P	Is the release a P2P release?
 
 Please cache the file on your device. You may not modify the image in any way or hide the footer.
 
@@ -20,15 +23,17 @@ func GetNFOByID(id string, isP2P bool) ([]byte, error) {
 		err         error
 	)
 
-	client, err := getOAuth2Client()
+	requestURL := apiURL + "nfo/release.json?id="
+	if isP2P {
+		requestURL = apiURL + "nfo/p2p_rls.json?id="
+	}
+	requestURL = requestURL + id
+	client := http.DefaultClient
+	var request *http.Request
+	request, err = getOAuth2Request("GET", requestURL, nil)
 	if err == nil {
 		var response *http.Response
-		requestURL := apiURL + "nfo/release.json"
-		if isP2P {
-			requestURL = apiURL + "nfo/p2p_rls.json"
-		}
-		response, err = client.Get(requestURL + "?id=" + id)
-		defer response.Body.Close()
+		response, err = client.Do(request)
 		if err == nil {
 			err = checkResponse(response)
 			if err == nil {

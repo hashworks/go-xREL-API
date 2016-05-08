@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -23,17 +24,21 @@ func GetExtInfo(id string) (types.ExtendedExtInfo, error) {
 	if id == "" {
 		err = types.NewError("client", "argument_missing", "id", "")
 	} else {
-		client := getClient()
-		var response *http.Response
-		response, err = client.Get(apiURL + "ext_info/info.json?id=" + id)
-		defer response.Body.Close()
+		client := http.DefaultClient
+		var request *http.Request
+		request, err = getRequest("GET", apiURL+"ext_info/info.json?id="+id, nil)
 		if err == nil {
-			err = checkResponse(response)
+			var response *http.Response
+			response, err = client.Do(request)
 			if err == nil {
-				var bytes []byte
-				bytes, err = ioutil.ReadAll(response.Body)
+				defer response.Body.Close()
+				err = checkResponse(response)
 				if err == nil {
-					err = json.Unmarshal(bytes, &extInfoStruct)
+					var bytes []byte
+					bytes, err = ioutil.ReadAll(response.Body)
+					if err == nil {
+						err = json.Unmarshal(bytes, &extInfoStruct)
+					}
 				}
 			}
 		}
@@ -56,17 +61,21 @@ func GetExtInfoMedia(id string) ([]types.ExtInfoMediaItem, error) {
 	if id == "" {
 		err = types.NewError("client", "argument_missing", "id", "")
 	} else {
-		client := getClient()
-		var response *http.Response
-		response, err = client.Get(apiURL + "ext_info/media.json?id=" + id)
-		defer response.Body.Close()
+		client := http.DefaultClient
+		var request *http.Request
+		request, err = getRequest("GET", apiURL+"ext_info/media.json?id="+id, nil)
 		if err == nil {
-			err = checkResponse(response)
+			var response *http.Response
+			response, err = client.Do(request)
 			if err == nil {
-				var bytes []byte
-				bytes, err = ioutil.ReadAll(response.Body)
+				defer response.Body.Close()
+				err = checkResponse(response)
 				if err == nil {
-					err = json.Unmarshal(bytes, &extInfoMediaItemsStruct)
+					var bytes []byte
+					bytes, err = ioutil.ReadAll(response.Body)
+					if err == nil {
+						err = json.Unmarshal(bytes, &extInfoMediaItemsStruct)
+					}
 				}
 			}
 		}
@@ -77,9 +86,9 @@ func GetExtInfoMedia(id string) ([]types.ExtInfoMediaItem, error) {
 
 /*
 RateExtInfo rates an ExtInfo.
-Requires OAuth authentication.
+Requires user OAuth authentication.
 
-	id		Ext Info ID.
+	id	Ext Info ID.
 	rating	Rating between 1 (bad) to 10 (good). You may only vote once, and may not change your vote.
 
 http://www.xrel.to/wiki/6315/api-ext-info-rate.html
@@ -95,16 +104,17 @@ func RateExtInfo(id string, rating int) (types.ExtendedExtInfo, error) {
 	} else if rating < 1 || rating > 10 {
 		err = types.NewError("client", "argument_missing", "rating", "")
 	} else {
-		var client *http.Client
-		client, err = getOAuth2Client()
+		client := http.DefaultClient
+		var request *http.Request
+		form := url.Values{}
+		form.Add("id", id)
+		form.Add("rating", strconv.Itoa(rating))
+		request, err = getOAuth2Request("POST", apiURL+"ext_info/rate.json", strings.NewReader(form.Encode()))
 		if err == nil {
-			var parameters = url.Values{}
-			parameters.Add("id", id)
-			parameters.Add("rating", strconv.Itoa(rating))
 			var response *http.Response
-			response, err = client.PostForm(apiURL+"ext_info/rate.json", parameters)
-			defer response.Body.Close()
+			response, err = client.Do(request)
 			if err == nil {
+				defer response.Body.Close()
 				err = checkResponse(response)
 				if err == nil {
 					var bytes []byte
