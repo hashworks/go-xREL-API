@@ -76,7 +76,7 @@ func NewError(errorType, errorCode, errorExtra, errorDesc string) *Error {
 			errorDesc = "Ratelimit reached."
 
 		case "internal_error":
-			errorDesc = "Internal error on the xREL server. If this keeps occuring, please report to a developer: https://www.xrel.to/wiki/213/Team.html"
+			errorDesc = "Internal error on the xREL server. If this keeps occurring, please report to a developer: https://www.xrel.to/wiki/213/Team.html"
 
 		// Other
 		default:
