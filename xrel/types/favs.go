@@ -3,6 +3,7 @@ package types
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"strconv"
 )
 
 type FavList struct {
@@ -29,7 +30,7 @@ func (f *FavList) TestPassword(password string) bool {
 	}
 
 	h := sha1.New()
-	h.Write([]byte(password))
+	h.Write([]byte(strconv.Itoa(f.ID) + "\n\r" + password))
 	passwordHashString := hex.EncodeToString(h.Sum(nil))
 
 	for i := 0; i < h.Size(); i++ {
