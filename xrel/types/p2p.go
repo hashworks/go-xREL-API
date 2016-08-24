@@ -8,6 +8,11 @@ type P2PReleases struct {
 	List       []P2PRelease `json:"list"`
 }
 
+const (
+	P2P_RELEASE_MAIN_LANGUAGE_DE = "german"
+	P2P_RELEASE_MAIN_LANGUAGE_EN = "english"
+)
+
 type P2PRelease struct {
 	ID           string       `json:"id"`
 	Dirname      string       `json:"dirname"`

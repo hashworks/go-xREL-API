@@ -30,6 +30,20 @@ type ExtendedExtInfo struct {
 	P2PReleases  []P2PRelease         `json:"p2p_releases"`
 }
 
+const (
+	RELEASE_DATE_TYPE_R5 = "r5"
+	RELEASE_DATE_TYPE_DE_CINE = "de-cine"
+	RELEASE_DATE_TYPE_DE_RENTAL = "de-rental"
+	RELEASE_DATE_TYPE_DE_RETAIL = "de-retail"
+	RELEASE_DATE_TYPE_DE_HD = "de-hd"
+	RELEASE_DATE_TYPE_DE_WEB = "de-web"
+	RELEASE_DATE_TYPE_EN_CINE = "de-cine"
+	RELEASE_DATE_TYPE_EN_RENTAL = "de-rental"
+	RELEASE_DATE_TYPE_EN_RETAIL = "de-retail"
+	RELEASE_DATE_TYPE_EN_HD = "de-hd"
+	RELEASE_DATE_TYPE_EN_WEB = "de-web"
+)
+
 type ExtInfoReleaseDate struct {
 	Type string `json:"type"`
 	Date string `json:"date"`
