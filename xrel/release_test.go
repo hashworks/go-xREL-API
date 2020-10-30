@@ -129,7 +129,7 @@ func TestBrowseReleaseCategory(t *testing.T) {
 			t.Errorf("Received unexpected per page count of %d.", rl.Pagination.PerPage)
 		}
 		if len(rl.List) != 6 {
-			t.Error("Received unexpected release count of %d.", len(rl.List))
+			t.Errorf("Received unexpected release count of %d.", len(rl.List))
 		} else {
 			if rl.List[0].ID == "" {
 				t.Error("Didn't expect the id of the first release to be empty.")
@@ -166,7 +166,7 @@ func TestGetReleaseByExtInfoID(t *testing.T) {
 			t.Errorf("Received unexpected per page count of %d.", rl.Pagination.PerPage)
 		}
 		if len(rl.List) != 6 {
-			t.Error("Received unexpected release count of %d.", len(rl.List))
+			t.Errorf("Received unexpected release count of %d.", len(rl.List))
 		} else {
 			if rl.List[0].ID == "" {
 				t.Error("Didn't expect the id of the first release to be empty.")
