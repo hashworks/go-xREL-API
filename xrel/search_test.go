@@ -13,17 +13,17 @@ func TestSearchReleases(t *testing.T) {
 		t.Error(err.Error())
 	} else {
 		if rl.Total != limit {
-			t.Error("Expected the total release count to be %d, was %d.", limit, rl.Total)
+			t.Errorf("Expected the total release count to be %d, was %d.", limit, rl.Total)
 		}
 		if len(rl.SceneResults) != limit {
-			t.Error("Expected the scene release count to be %d, was %d.", limit, len(rl.SceneResults))
+			t.Errorf("Expected the scene release count to be %d, was %d.", limit, len(rl.SceneResults))
 		} else {
 			if rl.SceneResults[0].ID == "" {
 				t.Error("Didn't expect the id of the first release to be empty.")
 			}
 		}
 		if len(rl.P2PResults) != 0 {
-			t.Error("Expected the p2p release count to be 0, was %d.", len(rl.P2PResults))
+			t.Errorf("Expected the p2p release count to be 0, was %d.", len(rl.P2PResults))
 		}
 	}
 }

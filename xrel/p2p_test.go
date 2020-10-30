@@ -50,7 +50,7 @@ func TestGetP2PCategories(t *testing.T) {
 				}
 			}
 			if !exists {
-				t.Error("Expected category %s to exist.")
+				t.Error("Expected category does not exist.")
 			}
 		}
 	}

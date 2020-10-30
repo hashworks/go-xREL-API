@@ -15,8 +15,8 @@ func TestGetExtInfo(t *testing.T) {
 		if eInfo.ID != id {
 			t.Errorf("Expected id '%s', received '%s'.", id, eInfo.ID)
 		}
-		if eInfo.Type != "game" {
-			t.Errorf("Expected type 'game', received '%s'.", eInfo.Type)
+		if eInfo.Type != "master_game" {
+			t.Errorf("Expected type 'master_game', received '%s'.", eInfo.Type)
 		}
 		if eInfo.Title != "L.A. Noire" {
 			t.Errorf("Expected title 'L.A. Noire', received '%s'.", eInfo.Title)
@@ -35,7 +35,7 @@ func TestGetExtInfoMedia(t *testing.T) {
 		t.Error(err.Error())
 	}
 	if len(eInfoMedia) == 0 {
-		t.Error("Unexpectingly received no ExtInfoMedias.")
+		t.Error("Unexpectedly received no ExtInfoMedias.")
 	} else {
 		if eInfoMedia[0].Type == "" {
 			t.Error("Expected a proper type, got nothing.")
